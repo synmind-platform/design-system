@@ -1,0 +1,284 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  SynMind Design System
+  Ecossistema de marca: SynMind (B2B) | I_DEAL (B2C) | MindScan (Ciência)
+
+  Cores principais:
+  - SynMind Blue: #5B7B93 (corporativo, confiança)
+  - SynMind Orange: #D98D38 (energia, ação, transformação)
+  - Neutros: Stone palette (calor humano)
+*/
+@theme {
+  /* Font families - DM Sans for clean, geometric type */
+  --font-display: "DM Sans", system-ui, sans-serif;
+  --font-body: "DM Sans", system-ui, sans-serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* SynMind Brand Colors */
+  --color-synmind-blue-50: #F0F4F7;
+  --color-synmind-blue-100: #DCE5EB;
+  --color-synmind-blue-200: #B9CBD8;
+  --color-synmind-blue-300: #96B1C4;
+  --color-synmind-blue-400: #7497B1;
+  --color-synmind-blue-500: #5B7B93;
+  --color-synmind-blue-600: #4A6476;
+  --color-synmind-blue-700: #394D5A;
+  --color-synmind-blue-800: #28363D;
+  --color-synmind-blue-900: #171F21;
+
+  --color-synmind-orange-50: #FDF6EE;
+  --color-synmind-orange-100: #FAEBD8;
+  --color-synmind-orange-200: #F5D5AE;
+  --color-synmind-orange-300: #EFBF84;
+  --color-synmind-orange-400: #E9A55A;
+  --color-synmind-orange-500: #D98D38;
+  --color-synmind-orange-600: #B6722A;
+  --color-synmind-orange-700: #8A5620;
+  --color-synmind-orange-800: #5E3A16;
+  --color-synmind-orange-900: #321E0C;
+}
+
+/* Shadcn theme integration */
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/*
+  Light theme - SynMind Brand
+  Profissional com toque humano
+*/
+:root {
+  --radius: 0.5rem;
+
+  /* Backgrounds & Foregrounds - Stone palette for warmth */
+  --background: #FAFAF9; /* stone-50 */
+  --foreground: #1C1917; /* stone-900 */
+  --card: #FFFFFF;
+  --card-foreground: #1C1917;
+  --popover: #FFFFFF;
+  --popover-foreground: #1C1917;
+
+  /* Primary - SynMind Blue (corporativo, confiança) */
+  --primary: #5B7B93;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary - SynMind Orange (energia, ação) */
+  --secondary: #D98D38;
+  --secondary-foreground: #FFFFFF;
+
+  /* Muted - Stone for subdued text */
+  --muted: #F5F5F4; /* stone-100 */
+  --muted-foreground: #57534E; /* stone-600 */
+
+  /* Accent - SynMind Orange (destaque, CTAs) */
+  --accent: #D98D38;
+  --accent-foreground: #FFFFFF;
+
+  /* Destructive - Error states */
+  --destructive: #EF4444;
+
+  /* Borders & Inputs */
+  --border: #E7E5E4; /* stone-200 */
+  --input: #E7E5E4;
+  --ring: #5B7B93; /* SynMind Blue */
+
+  /* Chart colors - Brand harmonized */
+  --chart-1: #5B7B93; /* SynMind Blue */
+  --chart-2: #D98D38; /* SynMind Orange */
+  --chart-3: #7497B1; /* Blue 400 */
+  --chart-4: #E9A55A; /* Orange 400 */
+  --chart-5: #4A6476; /* Blue 600 */
+
+  /* Sidebar - Clean and professional */
+  --sidebar: #FAFAF9;
+  --sidebar-foreground: #1C1917;
+  --sidebar-primary: #5B7B93;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F0F4F7; /* Blue 50 */
+  --sidebar-accent-foreground: #1C1917;
+  --sidebar-border: #E7E5E4;
+  --sidebar-ring: #5B7B93;
+}
+
+/*
+  Dark theme - SynMind Brand Dark Mode
+*/
+.dark {
+  /* Backgrounds & Foregrounds */
+  --background: #1C1917; /* stone-900 */
+  --foreground: #FAFAF9; /* stone-50 */
+  --card: #292524; /* stone-800 */
+  --card-foreground: #FAFAF9;
+  --popover: #292524;
+  --popover-foreground: #FAFAF9;
+
+  /* Primary - SynMind Blue lighter for dark mode */
+  --primary: #7497B1; /* Blue 400 */
+  --primary-foreground: #1C1917;
+
+  /* Secondary - SynMind Orange */
+  --secondary: #E9A55A; /* Orange 400 */
+  --secondary-foreground: #1C1917;
+
+  /* Muted */
+  --muted: #44403C; /* stone-700 */
+  --muted-foreground: #A8A29E; /* stone-400 */
+
+  /* Accent */
+  --accent: #E9A55A; /* Orange 400 */
+  --accent-foreground: #1C1917;
+
+  /* Destructive */
+  --destructive: #F87171; /* red-400 */
+
+  /* Borders & Inputs */
+  --border: #57534E; /* stone-600 */
+  --input: #57534E;
+  --ring: #7497B1;
+
+  /* Chart colors - Brighter for dark mode */
+  --chart-1: #7497B1;
+  --chart-2: #E9A55A;
+  --chart-3: #96B1C4;
+  --chart-4: #EFBF84;
+  --chart-5: #5B7B93;
+
+  /* Sidebar */
+  --sidebar: #292524;
+  --sidebar-foreground: #FAFAF9;
+  --sidebar-primary: #D98D38;
+  --sidebar-primary-foreground: #1C1917;
+  --sidebar-accent: #44403C;
+  --sidebar-accent-foreground: #FAFAF9;
+  --sidebar-border: #57534E;
+  --sidebar-ring: #7497B1;
+}
+
+/* Base layer styles */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply font-semibold tracking-tight;
+  }
+  code, pre, kbd {
+    font-family: var(--font-mono);
+  }
+}
+
+/* SynMind Brand Utilities */
+@layer utilities {
+  /* Brand color utilities */
+  .text-synmind-blue {
+    color: var(--color-synmind-blue-500);
+  }
+  .text-synmind-orange {
+    color: var(--color-synmind-orange-500);
+  }
+  .bg-synmind-blue {
+    background-color: var(--color-synmind-blue-500);
+  }
+  .bg-synmind-orange {
+    background-color: var(--color-synmind-orange-500);
+  }
+  .border-synmind-blue {
+    border-color: var(--color-synmind-blue-500);
+  }
+  .border-synmind-orange {
+    border-color: var(--color-synmind-orange-500);
+  }
+
+  /* Brand variant modifiers for B2B/B2C contexts */
+  .variant-b2b {
+    --primary: var(--color-synmind-blue-500);
+    --accent: var(--color-synmind-blue-400);
+  }
+  .variant-b2c {
+    --primary: var(--color-synmind-orange-500);
+    --accent: var(--color-synmind-orange-400);
+  }
+
+  /* Animations */
+  .animate-fade-in {
+    animation: fade-in 200ms ease-out;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-collapse-down {
+    animation: collapse-down 200ms ease-out;
+  }
+
+  .animate-collapse-up {
+    animation: collapse-up 200ms ease-out;
+  }
+
+  @keyframes collapse-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-collapsible-content-height);
+    }
+  }
+
+  @keyframes collapse-up {
+    from {
+      height: var(--radix-collapsible-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
