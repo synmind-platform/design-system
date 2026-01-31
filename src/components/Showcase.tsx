@@ -469,8 +469,8 @@ export function Showcase() {
                     sortable: true,
                     align: "center",
                     render: (value) => (
-                      <span className={value >= 90 ? "text-green-600 font-medium" : ""}>
-                        {value}
+                      <span className={(value as number) >= 90 ? "text-green-600 font-medium" : ""}>
+                        {value as number}
                       </span>
                     ),
                   },
@@ -478,8 +478,8 @@ export function Showcase() {
                     key: "status",
                     header: "Status",
                     render: (value) => (
-                      <Badge variant={value === "Ativo" ? "default" : "secondary"}>
-                        {value}
+                      <Badge variant={(value as string) === "Ativo" ? "default" : "secondary"}>
+                        {value as string}
                       </Badge>
                     ),
                   },

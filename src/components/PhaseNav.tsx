@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useMemo } from 'react'
-import { FileText, Boxes, Layout, LayoutList, Package } from 'lucide-react'
+import { FileText, Boxes, Layout, LayoutList, Package, Check } from 'lucide-react'
 import { loadProductData, hasExportZip } from '@/lib/product-loader'
 import { getAllSectionIds, getSectionScreenDesigns } from '@/lib/section-loader'
 
@@ -139,9 +139,7 @@ export function PhaseNav() {
               {/* Completion indicator - check circle at top-left (shows even when current) */}
               {isComplete && (
                 <span className="absolute -top-1 -left-1 w-4 h-4 rounded-full bg-lime-500 flex items-center justify-center shadow-sm">
-                  <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+                  <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                 </span>
               )}
             </button>

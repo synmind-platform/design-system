@@ -19,6 +19,8 @@ export { AssessmentProgress } from "./AssessmentProgress";
 
 // Input components (questionnaires)
 export { LikertScale } from "./LikertScale";
+export { TouchSlider } from "./TouchSlider";
+export type { TouchSliderProps } from "./TouchSlider";
 export { ForcedChoice } from "./ForcedChoice";
 export { AllocationSlider } from "./AllocationSlider";
 

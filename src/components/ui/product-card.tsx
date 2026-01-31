@@ -1,6 +1,6 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Check } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -107,20 +107,11 @@ function ProductCard({
           <ul className="space-y-2">
             {features.map((feature, index) => (
               <li key={index} className="flex items-start gap-2 text-sm">
-                <svg
+                <Check
                   className="size-5 flex-shrink-0 mt-0.5"
                   style={{ color: accentColor }}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+                  strokeWidth={2}
+                />
                 <span className="text-muted-foreground">{feature}</span>
               </li>
             ))}

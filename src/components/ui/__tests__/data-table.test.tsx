@@ -259,7 +259,7 @@ describe('DataTable', () => {
         {
           key: 'status',
           header: 'Status',
-          render: (value) => <span data-testid="custom-status">{value.toUpperCase()}</span>,
+          render: (value) => <span data-testid="custom-status">{(value as string).toUpperCase()}</span>,
         },
       ]
 

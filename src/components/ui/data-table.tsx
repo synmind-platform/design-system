@@ -16,7 +16,7 @@ interface Column<T> {
   /** Alinhamento do conteúdo */
   align?: "left" | "center" | "right"
   /** Função de renderização customizada */
-  render?: (value: any, row: T, index: number) => React.ReactNode
+  render?: (value: unknown, row: T, index: number) => React.ReactNode
 }
 
 interface DataTableProps<T> extends React.HTMLAttributes<HTMLDivElement> {
@@ -60,7 +60,7 @@ interface DataTableProps<T> extends React.HTMLAttributes<HTMLDivElement> {
  * Tabela de dados avançada para dashboards B2B.
  * Suporta ordenação, busca, seleção e customização de colunas.
  */
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends object>({
   className,
   data,
   columns,
@@ -96,11 +96,11 @@ export function DataTable<T extends Record<string, any>>({
     onSort(key, newDirection)
   }
 
-  const getValue = (row: T, key: keyof T | string) => {
+  const getValue = (row: T, key: keyof T | string): unknown => {
     const keys = String(key).split(".")
-    let value: any = row
+    let value: unknown = row
     for (const k of keys) {
-      value = value?.[k]
+      value = (value as Record<string, unknown>)?.[k]
     }
     return value
   }
@@ -258,7 +258,7 @@ export function DataTable<T extends Record<string, any>>({
                       >
                         {column.render
                           ? column.render(value, row, rowIndex)
-                          : value ?? "-"}
+                          : (value as React.ReactNode) ?? "-"}
                       </td>
                     )
                   })}
