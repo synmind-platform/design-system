@@ -8,6 +8,7 @@ import { ScreenDesignPage, ScreenDesignFullscreen } from '@/components/ScreenDes
 import { ShellDesignPage, ShellDesignFullscreen } from '@/components/ShellDesignPage'
 import { ExportPage } from '@/components/ExportPage'
 import { Showcase } from '@/components/Showcase'
+import { PsychometricShowcase } from '@/components/PsychometricShowcase'
 
 export const router = createBrowserRouter([
   {
@@ -53,5 +54,9 @@ export const router = createBrowserRouter([
   {
     path: '/showcase',
     element: <Showcase />,
+  },
+  {
+    path: '/psychometric',
+    element: <PsychometricShowcase />,
   },
 ])
