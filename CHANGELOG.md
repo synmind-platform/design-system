@@ -3,6 +3,20 @@
 Get notified of major releases by subscribing here:
 https://buildermethods.com/design-os
 
+## [0.3.0] - 2026-01-31
+
+### Added - Documentação JSDoc
+- **Button**: Documentação completa com exemplos de uso e props (variant, size, asChild)
+- **Input**: JSDoc descrevendo suporte a validação e tipos de input
+- **Alert**: Documentação do componente principal e sub-componentes (AlertTitle, AlertDescription)
+- **Navbar**: Documentação completa com interface NavItem e todas as props documentadas
+
+### Improved
+- Criada interface `ButtonProps` explícita para melhor intellisense no IDE
+- Documentação segue padrão estabelecido em DataTable e DashboardCard
+
+---
+
 ## [0.2.0] - 2026-01-31
 
 ### Added

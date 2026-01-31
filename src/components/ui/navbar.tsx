@@ -5,18 +5,46 @@ import { cn } from "@/lib/utils"
 import { Button } from "./button"
 import { SynMindLogo } from "@/components/brand"
 
+/**
+ * NavItem Interface
+ *
+ * Item de navegação para a Navbar.
+ */
 interface NavItem {
+  /** Texto do link */
   label: string
+  /** URL de destino */
   href: string
+  /** Estado ativo (destaque visual) */
   active?: boolean
 }
 
+/**
+ * Navbar Component
+ *
+ * Barra de navegação responsiva com suporte a variantes B2B/B2C.
+ * Inclui menu mobile, logo customizável e área de ações.
+ *
+ * @example
+ * <Navbar
+ *   variant="b2b"
+ *   logo={<Logo />}
+ *   items={[{ label: "Home", href: "/", active: true }]}
+ *   actions={<Button>Login</Button>}
+ * />
+ */
 interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
+  /** Tema de cores: default (#5B7B93), b2b, b2c (#D98D38) */
   variant?: "default" | "b2b" | "b2c"
+  /** Array de NavItem para links de navegação */
   items?: NavItem[]
+  /** Elemento React para o logo */
   logo?: React.ReactNode
+  /** Área de ações (botões, dropdown) */
   actions?: React.ReactNode
+  /** Fixar navbar no topo */
   sticky?: boolean
+  /** Callback ao clicar em item */
   onNavigate?: (href: string) => void
 }
 

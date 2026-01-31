@@ -2,6 +2,17 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Input Component
+ *
+ * Campo de entrada estilizado com suporte a validação e tipos diversos.
+ * Inclui estilos para file input e estados de erro (aria-invalid).
+ *
+ * @example
+ * <Input type="text" placeholder="Nome" />
+ * <Input type="email" aria-invalid={hasError} />
+ * <Input type="file" />
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input

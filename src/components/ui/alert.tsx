@@ -30,11 +30,28 @@ const alertIcons = {
   destructive: AlertCircle,
 }
 
+/**
+ * Alert Component
+ *
+ * Componente de alerta com variantes semânticas e ícones automáticos.
+ * Suporta dismissão e customização de conteúdo via sub-componentes.
+ *
+ * Variantes: default, info, success, warning, destructive
+ *
+ * @example
+ * <Alert variant="success">
+ *   <AlertTitle>Sucesso!</AlertTitle>
+ *   <AlertDescription>Operação concluída.</AlertDescription>
+ * </Alert>
+ */
 interface AlertProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof alertVariants> {
+  /** Mostrar ícone automático baseado na variante */
   icon?: boolean
+  /** Permitir fechar o alerta */
   dismissible?: boolean
+  /** Callback ao fechar */
   onDismiss?: () => void
 }
 
@@ -71,6 +88,11 @@ function Alert({
   )
 }
 
+/**
+ * AlertTitle Component
+ *
+ * Título do alerta com estilo de destaque.
+ */
 function AlertTitle({ className, ...props }: React.ComponentProps<"h5">) {
   return (
     <h5
@@ -81,6 +103,11 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"h5">) {
   )
 }
 
+/**
+ * AlertDescription Component
+ *
+ * Descrição do alerta com estilo secundário.
+ */
 function AlertDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
