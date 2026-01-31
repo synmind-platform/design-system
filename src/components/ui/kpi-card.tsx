@@ -11,9 +11,9 @@ const kpiCardVariants = cva(
     variants: {
       variant: {
         default: "border-border",
-        highlight: "border-[#5B7B93]/30 bg-gradient-to-br from-[#F0F4F7] to-white dark:from-[#28363D]/50 dark:to-card",
+        highlight: "border-synmind-blue-500/30 bg-gradient-to-br from-synmind-blue-50 to-white dark:from-synmind-blue-800/50 dark:to-card",
         success: "border-green-500/30 bg-gradient-to-br from-green-50 to-white dark:from-green-950/30 dark:to-card",
-        warning: "border-[#D98D38]/30 bg-gradient-to-br from-[#FDF6EE] to-white dark:from-[#321E0C]/30 dark:to-card",
+        warning: "border-synmind-orange-500/30 bg-gradient-to-br from-synmind-orange-50 to-white dark:from-synmind-orange-900/30 dark:to-card",
         danger: "border-red-500/30 bg-gradient-to-br from-red-50 to-white dark:from-red-950/30 dark:to-card",
       },
       size: {
@@ -114,8 +114,8 @@ export function KPICard({
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-2">
           {Icon && (
-            <div className="p-2 rounded-lg bg-[#5B7B93]/10">
-              <Icon className="size-4 text-[#5B7B93]" />
+            <div className="p-2 rounded-lg bg-synmind-blue-500/10">
+              <Icon className="size-4 text-synmind-blue-500" />
             </div>
           )}
           <div>
@@ -182,9 +182,9 @@ export function KPICard({
                 targetProgress >= 100
                   ? "bg-green-500"
                   : targetProgress >= 75
-                    ? "bg-[#5B7B93]"
+                    ? "bg-synmind-blue-500"
                     : targetProgress >= 50
-                      ? "bg-[#D98D38]"
+                      ? "bg-synmind-orange-500"
                       : "bg-red-500"
               )}
               style={{ width: `${Math.min(targetProgress, 100)}%` }}

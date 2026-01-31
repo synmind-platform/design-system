@@ -28,7 +28,7 @@ describe('KPICard', () => {
 
   it('applies highlight variant', () => {
     render(<KPICard label="Test" value={100} variant="highlight" data-testid="kpi" />)
-    expect(screen.getByTestId('kpi')).toHaveClass('border-[#5B7B93]/30')
+    expect(screen.getByTestId('kpi')).toHaveClass('border-synmind-blue-500/30')
   })
 
   it('applies success variant', () => {
@@ -38,7 +38,7 @@ describe('KPICard', () => {
 
   it('applies warning variant', () => {
     render(<KPICard label="Test" value={100} variant="warning" data-testid="kpi" />)
-    expect(screen.getByTestId('kpi')).toHaveClass('border-[#D98D38]/30')
+    expect(screen.getByTestId('kpi')).toHaveClass('border-synmind-orange-500/30')
   })
 
   it('applies danger variant', () => {

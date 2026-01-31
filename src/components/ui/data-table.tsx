@@ -241,7 +241,7 @@ export function DataTable<T extends Record<string, any>>({
                   className={cn(
                     "border-b transition-colors",
                     onRowClick && "cursor-pointer hover:bg-muted/50",
-                    selectedRows.includes(rowIndex) && "bg-[#5B7B93]/5"
+                    selectedRows.includes(rowIndex) && "bg-synmind-blue-500/5"
                   )}
                   onClick={() => onRowClick?.(row, rowIndex)}
                 >

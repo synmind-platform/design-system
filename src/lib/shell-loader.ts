@@ -87,14 +87,7 @@ export function parseShellSpec(md: string): ShellSpec | null {
  */
 export function hasShellComponents(): boolean {
   // Check if AppShell.tsx exists
-  const exists = '/src/shell/components/AppShell.tsx' in shellComponentModules
-  // Debug: log available shell components
-  console.log('[Shell] hasShellComponents check:', {
-    exists,
-    availableComponents: Object.keys(shellComponentModules),
-    lookingFor: '/src/shell/components/AppShell.tsx'
-  })
-  return exists
+  return '/src/shell/components/AppShell.tsx' in shellComponentModules
 }
 
 /**

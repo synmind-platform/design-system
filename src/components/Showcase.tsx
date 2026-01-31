@@ -426,8 +426,8 @@ export function Showcase() {
                 <DashboardCard
                   title="Análise de Performance"
                   subtitle="Últimos 30 dias"
-                  onRefresh={() => console.log("Refresh")}
-                  onExport={() => console.log("Export")}
+                  onRefresh={() => {}}
+                  onExport={() => {}}
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">

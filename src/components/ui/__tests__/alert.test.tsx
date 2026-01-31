@@ -39,7 +39,7 @@ describe('Alert', () => {
   it('renders info variant with correct styling', () => {
     render(<Alert variant="info" data-testid="alert">Content</Alert>)
     const alert = screen.getByTestId('alert')
-    expect(alert).toHaveClass('bg-[#F0F4F7]')
+    expect(alert).toHaveClass('bg-synmind-blue-50')
   })
 
   it('renders success variant with correct styling', () => {
@@ -51,7 +51,7 @@ describe('Alert', () => {
   it('renders warning variant with correct styling', () => {
     render(<Alert variant="warning" data-testid="alert">Content</Alert>)
     const alert = screen.getByTestId('alert')
-    expect(alert).toHaveClass('bg-[#FDF6EE]')
+    expect(alert).toHaveClass('bg-synmind-orange-50')
   })
 
   it('renders destructive variant with correct styling', () => {

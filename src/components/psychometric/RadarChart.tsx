@@ -20,10 +20,20 @@ export function RadarChart({
   variant = "filled",
   className,
 }: RadarChartProps) {
+  // Guard against empty or invalid dimensions array
+  if (!dimensions || dimensions.length === 0) {
+    return (
+      <div className={cn("relative flex items-center justify-center", className)} style={{ width: size, height: size }}>
+        <span className="text-sm text-muted-foreground">Sem dados para exibir</span>
+      </div>
+    );
+  }
+
   const centerX = size / 2;
   const centerY = size / 2;
   const maxRadius = (size / 2) * 0.7;
 
+  // Safe division - dimensions.length is guaranteed > 0 by guard above
   const angleStep = (2 * Math.PI) / dimensions.length;
   const startAngle = -Math.PI / 2; // Start from top
 

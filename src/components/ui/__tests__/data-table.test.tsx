@@ -248,7 +248,7 @@ describe('DataTable', () => {
       )
 
       const rows = document.querySelectorAll('tbody tr')
-      expect(rows[0]).toHaveClass('bg-[#5B7B93]/5')
+      expect(rows[0]).toHaveClass('bg-synmind-blue-500/5')
     })
   })
 

@@ -10,9 +10,9 @@ const alertVariants = cva(
     variants: {
       variant: {
         default: "bg-background text-foreground",
-        info: "border-[#5B7B93]/30 bg-[#F0F4F7] text-[#394D5A] dark:border-[#5B7B93]/40 dark:bg-[#28363D] dark:text-[#B9CBD8] [&>svg]:text-[#5B7B93]",
+        info: "border-synmind-blue-500/30 bg-synmind-blue-50 text-synmind-blue-700 dark:border-synmind-blue-500/40 dark:bg-synmind-blue-800 dark:text-synmind-blue-200 [&>svg]:text-synmind-blue-500",
         success: "border-green-500/30 bg-green-50 text-green-800 dark:border-green-500/40 dark:bg-green-950 dark:text-green-200 [&>svg]:text-green-600 dark:[&>svg]:text-green-400",
-        warning: "border-[#D98D38]/30 bg-[#FDF6EE] text-[#8A5620] dark:border-[#D98D38]/40 dark:bg-[#321E0C] dark:text-[#F5D5AE] [&>svg]:text-[#D98D38]",
+        warning: "border-synmind-orange-500/30 bg-synmind-orange-50 text-synmind-orange-700 dark:border-synmind-orange-500/40 dark:bg-synmind-orange-900 dark:text-synmind-orange-200 [&>svg]:text-synmind-orange-500",
         destructive: "border-destructive/30 bg-red-50 text-red-800 dark:border-destructive/40 dark:bg-red-950 dark:text-red-200 [&>svg]:text-destructive",
       },
     },

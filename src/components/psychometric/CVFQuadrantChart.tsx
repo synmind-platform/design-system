@@ -32,6 +32,25 @@ export function CVFQuadrantChart({
   showLegend = true,
   className,
 }: CVFQuadrantChartProps) {
+  // Validate perceived data has all required quadrants
+  const requiredKeys: (keyof CVFQuadrant)[] = ['clan', 'adhocracy', 'market', 'hierarchy'];
+  const hasValidData = requiredKeys.every(
+    (key) => typeof perceived[key] === 'number' && !Number.isNaN(perceived[key])
+  );
+
+  if (!hasValidData) {
+    return (
+      <div className={cn("flex flex-col items-center gap-4", className)}>
+        <div
+          className="relative flex items-center justify-center bg-muted/20 rounded-lg"
+          style={{ width: size, height: size }}
+        >
+          <span className="text-sm text-muted-foreground">Dados inválidos ou incompletos</span>
+        </div>
+      </div>
+    );
+  }
+
   const centerX = size / 2;
   const centerY = size / 2;
   const maxRadius = (size / 2) * 0.75;
