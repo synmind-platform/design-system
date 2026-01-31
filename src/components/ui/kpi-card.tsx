@@ -139,11 +139,14 @@ export function KPICard({
 
       {/* Value */}
       <div className="mb-3">
-        <span className="text-3xl font-bold tracking-tight text-foreground">
+        <span
+          className="text-3xl font-bold tracking-tight text-foreground"
+          aria-label={`${label}: ${prefix || ""}${formatValue(value)}${suffix || ""}`}
+        >
           {prefix}{formatValue(value)}{suffix}
         </span>
         {previousValue !== undefined && (
-          <span className="ml-2 text-sm text-muted-foreground">
+          <span className="ml-2 text-sm text-muted-foreground" aria-hidden="true">
             (anterior: {formatValue(previousValue)})
           </span>
         )}
@@ -152,13 +155,16 @@ export function KPICard({
       {/* Change indicator */}
       {change !== undefined && (
         <div className="flex items-center gap-2 mb-3">
-          <div className={cn("flex items-center gap-1", trendColor)}>
-            <TrendIcon className="size-4" />
+          <div
+            className={cn("flex items-center gap-1", trendColor)}
+            aria-label={`Variação de ${Math.abs(change).toFixed(1)}% ${isPositive ? "positiva" : isNegative ? "negativa" : "neutra"} ${changePeriod}`}
+          >
+            <TrendIcon className="size-4" aria-hidden="true" />
             <span className="text-sm font-medium">
               {isPositive && "+"}{change.toFixed(1)}%
             </span>
           </div>
-          <span className="text-xs text-muted-foreground">{changePeriod}</span>
+          <span className="text-xs text-muted-foreground" aria-hidden="true">{changePeriod}</span>
         </div>
       )}
 
@@ -205,9 +211,17 @@ function SparklineChart({ data }: { data: number[] }) {
   }).join(" ")
 
   const isUpward = data[data.length - 1] > data[0]
+  const trendLabel = isUpward ? "crescente" : "decrescente"
 
   return (
-    <svg width="60" height="24" className="text-muted-foreground">
+    <svg
+      width="60"
+      height="24"
+      className="text-muted-foreground"
+      role="img"
+      aria-label={`Tendência ${trendLabel} ao longo de ${data.length} pontos`}
+    >
+      <title>Gráfico de tendência</title>
       <polyline
         points={points}
         fill="none"

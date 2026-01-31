@@ -162,10 +162,6 @@ export function LikertScale({
           {options.map((option) => {
             const isSelected = value === option;
             const isHovered = hoveredValue === option;
-            const isInRange =
-              hoveredValue !== null &&
-              ((hoveredValue >= option && option >= 1) ||
-                (value !== undefined && option <= value));
 
             return (
               <button

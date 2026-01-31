@@ -7,7 +7,7 @@ import { QualityBadge } from "./QualityBadge";
 import { CVFQuadrantChart } from "./CVFQuadrantChart";
 import { ProfileChart } from "./ProfileChart";
 import type {
-  InstrumentResult,
+  PsychometricResult,
   BigFiveResult,
   TEIResult,
   CVFResult,
@@ -26,7 +26,7 @@ import {
 import { useState } from "react";
 
 interface InstrumentResultCardProps {
-  result: InstrumentResult;
+  result: PsychometricResult;
   expanded?: boolean;
   showChart?: boolean;
   showDetails?: boolean;

@@ -56,6 +56,15 @@ export function RadarChart({
   // Grid circles (25%, 50%, 75%, 100%)
   const gridLevels = [0.25, 0.5, 0.75, 1];
 
+  // Generate accessible description of the chart data
+  const chartDescription = dimensions
+    .map((dim) => {
+      const label = DIMENSION_LABELS[dim] || dim;
+      const value = Math.round(scores[dim] ?? 0);
+      return `${label}: ${value}%`;
+    })
+    .join(", ");
+
   return (
     <div className={cn("relative", className)}>
       <svg
@@ -63,7 +72,13 @@ export function RadarChart({
         height={size}
         viewBox={`0 0 ${size} ${size}`}
         className="overflow-visible"
+        role="img"
+        aria-labelledby="radar-chart-title radar-chart-desc"
       >
+        <title id="radar-chart-title">Gráfico Radar de Dimensões</title>
+        <desc id="radar-chart-desc">
+          Gráfico radar mostrando {dimensions.length} dimensões. {chartDescription}
+        </desc>
         {/* Grid circles */}
         {gridLevels.map((level) => (
           <circle
@@ -126,7 +141,6 @@ export function RadarChart({
           points.map((point, i) => {
             const label = DIMENSION_LABELS[point.dimension] || point.dimension;
             const isLeft = point.angle > Math.PI / 2 && point.angle < (3 * Math.PI) / 2;
-            const isTop = point.angle < 0 || point.angle > Math.PI;
 
             return (
               <text

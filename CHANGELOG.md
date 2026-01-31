@@ -3,6 +3,24 @@
 Get notified of major releases by subscribing here:
 https://buildermethods.com/design-os
 
+## [0.2.0] - 2026-01-31
+
+### Added
+- **Testing Infrastructure**: Vitest + React Testing Library configurados
+- 217 testes automatizados cobrindo componentes UI e psicométricos
+- Testes de acessibilidade para verificar atributos ARIA
+
+### Improved - Acessibilidade (WCAG 2.1)
+- **DataTable**: Headers com `scope="col"`, `aria-sort` para ordenação, botões acessíveis por teclado
+- **RadarChart**: SVG com `role="img"`, `<title>` e `<desc>` descrevendo dados
+- **CVFQuadrantChart**: SVG acessível com descrição de cultura percebida/desejada
+- **KPICard**: `aria-label` em valores, indicadores de tendência e sparklines
+- **ProfileChart**: Ambas variantes (bar/diamond) com descrições acessíveis
+
+### Fixed
+- Erros de TypeScript em componentes psicométricos
+- Build funcionando corretamente
+
 ## [0.1.2] - 2025-12-19
 
 - Fixed errors related to importing google fonts out of order.

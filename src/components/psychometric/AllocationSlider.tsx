@@ -84,7 +84,7 @@ export function AllocationSlider({
 
     if (otherTotal > 0 && diff !== 0) {
       let remaining = -diff;
-      otherOptions.forEach((opt, i) => {
+      otherOptions.forEach((opt) => {
         const currentVal = values[opt.id] || 0;
         const proportion = currentVal / otherTotal;
         let adjustment = Math.round(remaining * proportion);

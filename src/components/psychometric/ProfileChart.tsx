@@ -70,6 +70,11 @@ export function ProfileChart({
   const barWidth = size - labelWidth - valueWidth - 24;
   const totalHeight = dimensions.length * (barHeight + gap) - gap;
 
+  // Generate accessible description
+  const chartDescription = dimensions
+    .map((dim) => `${dimensionConfig[dim].label}: ${Math.round(graphI[dim] ?? 0)}%`)
+    .join(", ");
+
   return (
     <div className={cn("flex flex-col gap-4", className)}>
       <svg
@@ -77,7 +82,14 @@ export function ProfileChart({
         height={totalHeight}
         viewBox={`0 0 ${size} ${totalHeight}`}
         className="overflow-visible"
+        role="img"
+        aria-labelledby="profile-bar-chart-title profile-bar-chart-desc"
       >
+        <title id="profile-bar-chart-title">Gráfico de Perfil Comportamental SYM4</title>
+        <desc id="profile-bar-chart-desc">
+          Gráfico de barras mostrando perfil natural. {chartDescription}
+          {graphII ? ". Perfil adaptado também disponível." : ""}
+        </desc>
         {dimensions.map((dim, i) => {
           const config = dimensionConfig[dim];
           const valueI = graphI[dim] ?? 0;
@@ -181,7 +193,7 @@ function DiamondChart({
   const centerY = size! / 2;
   const maxRadius = (size! / 2) * 0.7;
 
-  const getPoint = (dimension: keyof SYM4Dimension, value: number, index: number) => {
+  const getPoint = (_dimension: keyof SYM4Dimension, value: number, index: number) => {
     const normalizedValue = Math.max(0, Math.min(100, value)) / 100;
     const angle = (index * Math.PI) / 2 - Math.PI / 2; // Start from top
     const radius = normalizedValue * maxRadius;
@@ -202,6 +214,11 @@ function DiamondChart({
       .join(" ") + " Z";
   };
 
+  // Generate accessible description
+  const chartDescription = dimensions
+    .map((dim) => `${dimensionConfig[dim].label}: ${Math.round(graphI[dim] ?? 0)}%`)
+    .join(", ");
+
   return (
     <div className={cn("flex flex-col items-center gap-4", className)}>
       <svg
@@ -209,7 +226,14 @@ function DiamondChart({
         height={size}
         viewBox={`0 0 ${size} ${size}`}
         className="overflow-visible"
+        role="img"
+        aria-labelledby="profile-diamond-chart-title profile-diamond-chart-desc"
       >
+        <title id="profile-diamond-chart-title">Gráfico Diamante de Perfil SYM4</title>
+        <desc id="profile-diamond-chart-desc">
+          Gráfico diamante mostrando perfil natural. {chartDescription}
+          {graphII ? ". Perfil adaptado também disponível." : ""}
+        </desc>
         {/* Grid */}
         {[0.25, 0.5, 0.75, 1].map((level) => (
           <polygon

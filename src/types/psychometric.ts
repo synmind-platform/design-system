@@ -28,20 +28,23 @@ export interface Classification {
 }
 
 // Base instrument result
-export interface InstrumentResult {
+export interface InstrumentResult<
+  TScores = Record<string, number>
+> {
   instrument_id: string;
   instrument_version: string;
   algorithm_version: string;
   keying_version: string;
   norm_version: string | null;
-  scores_primary: Record<string, number>;
-  scores_0_100: Record<string, number>;
+  scores_primary: TScores;
+  scores_0_100: TScores;
   classification: Classification;
   quality: QualityControl;
 }
 
 // Big Five (SM_BIG5_20)
 export interface BigFiveScores {
+  [key: string]: number;
   extraversion: number;
   agreeableness: number;
   conscientiousness: number;
@@ -49,14 +52,13 @@ export interface BigFiveScores {
   openness: number;
 }
 
-export interface BigFiveResult extends InstrumentResult {
+export interface BigFiveResult extends InstrumentResult<BigFiveScores> {
   instrument_id: "SM_BIG5_20";
-  scores_primary: BigFiveScores;
-  scores_0_100: BigFiveScores;
 }
 
 // Trait Emotional Intelligence (SM_TEI_20)
 export interface TEIScores {
+  [key: string]: number;
   well_being: number;
   emotionality: number;
   self_control: number;
@@ -64,14 +66,13 @@ export interface TEIScores {
   global: number;
 }
 
-export interface TEIResult extends InstrumentResult {
+export interface TEIResult extends InstrumentResult<TEIScores> {
   instrument_id: "SM_TEI_20";
-  scores_primary: TEIScores;
-  scores_0_100: TEIScores;
 }
 
 // Maladaptive Schemas (SM_ESQ_36)
 export interface SchemasDomains {
+  [key: string]: number;
   disconnection_rejection: number;
   impaired_autonomy: number;
   impaired_limits: number;
@@ -101,10 +102,8 @@ export interface SchemasScores extends SchemasDomains {
   punitiveness: number;
 }
 
-export interface SchemasResult extends InstrumentResult {
+export interface SchemasResult extends InstrumentResult<SchemasScores> {
   instrument_id: "SM_ESQ_36";
-  scores_primary: SchemasScores;
-  scores_0_100: SchemasScores;
 }
 
 // Competing Values Framework (SM_CVF_24)
@@ -121,10 +120,8 @@ export interface CVFScores {
   gap: CVFQuadrant; // Diferença (gap analysis)
 }
 
-export interface CVFResult extends InstrumentResult {
+export interface CVFResult extends InstrumentResult<CVFScores> {
   instrument_id: "SM_CVF_24";
-  scores_primary: CVFScores;
-  scores_0_100: CVFScores;
 }
 
 // SynMind Behavioral Profile (SM_SYM4_24)
@@ -141,10 +138,8 @@ export interface SYM4Scores {
   tension: SYM4Dimension; // Tensão (diferença)
 }
 
-export interface SYM4Result extends InstrumentResult {
+export interface SYM4Result extends InstrumentResult<SYM4Scores> {
   instrument_id: "SM_SYM4_24";
-  scores_primary: SYM4Scores;
-  scores_0_100: SYM4Scores;
 }
 
 // Union type for all instrument results

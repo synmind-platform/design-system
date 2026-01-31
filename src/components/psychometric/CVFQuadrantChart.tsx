@@ -38,7 +38,7 @@ export function CVFQuadrantChart({
 
   // CVF uses 4 quadrants, each value represents percentage in that quadrant
   // Position: top-left=clan, top-right=adhocracy, bottom-right=market, bottom-left=hierarchy
-  const getQuadrantPath = (data: CVFQuadrant, offset = 0) => {
+  const getQuadrantPath = (data: CVFQuadrant, _offset = 0) => {
     const positions = [
       { key: "clan", angle: Math.PI * 1.25 }, // Top-left
       { key: "adhocracy", angle: Math.PI * 1.75 }, // Top-right
@@ -58,6 +58,17 @@ export function CVFQuadrantChart({
       .join(" ") + " Z";
   };
 
+  // Generate accessible description of the chart data
+  const perceivedDescription = Object.entries(perceived)
+    .map(([key, value]) => `${quadrantLabels[key as keyof typeof quadrantLabels]?.name || key}: ${Math.round(value)}%`)
+    .join(", ");
+
+  const valuesDescription = values
+    ? Object.entries(values)
+        .map(([key, value]) => `${quadrantLabels[key as keyof typeof quadrantLabels]?.name || key}: ${Math.round(value)}%`)
+        .join(", ")
+    : null;
+
   return (
     <div className={cn("flex flex-col items-center gap-4", className)}>
       <div className="relative">
@@ -66,7 +77,15 @@ export function CVFQuadrantChart({
           height={size}
           viewBox={`0 0 ${size} ${size}`}
           className="overflow-visible"
+          role="img"
+          aria-labelledby="cvf-chart-title cvf-chart-desc"
         >
+          <title id="cvf-chart-title">Gráfico de Cultura Organizacional CVF</title>
+          <desc id="cvf-chart-desc">
+            Gráfico de quadrantes mostrando cultura organizacional.
+            Cultura percebida: {perceivedDescription}.
+            {valuesDescription ? ` Cultura desejada: ${valuesDescription}.` : ""}
+          </desc>
           {/* Background quadrant colors */}
           <rect
             x={0}

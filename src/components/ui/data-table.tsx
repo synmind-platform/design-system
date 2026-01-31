@@ -153,40 +153,61 @@ export function DataTable<T extends Record<string, any>>({
         <table className="w-full">
           <thead className={cn(stickyHeader && "sticky top-0 z-10")}>
             <tr className="border-b bg-muted/50">
-              {columns.map((column) => (
-                <th
-                  key={String(column.key)}
-                  className={cn(
-                    "px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
-                    column.align === "center" && "text-center",
-                    column.align === "right" && "text-right",
-                    column.sortable && "cursor-pointer select-none hover:bg-muted/80"
-                  )}
-                  style={{ width: column.width }}
-                  onClick={() => handleSort(column)}
-                >
-                  <div className={cn(
-                    "flex items-center gap-1",
-                    column.align === "center" && "justify-center",
-                    column.align === "right" && "justify-end"
-                  )}>
-                    {column.header}
-                    {column.sortable && (
-                      <span className="text-muted-foreground/50">
-                        {sortColumn === String(column.key) ? (
-                          sortDirection === "asc" ? (
-                            <ChevronUp className="size-4" />
-                          ) : (
-                            <ChevronDown className="size-4" />
-                          )
-                        ) : (
-                          <ChevronsUpDown className="size-3" />
-                        )}
-                      </span>
+              {columns.map((column) => {
+                const columnKey = String(column.key)
+                const isSorted = sortColumn === columnKey
+                const ariaSortValue = isSorted
+                  ? sortDirection === "asc"
+                    ? "ascending"
+                    : "descending"
+                  : undefined
+
+                return (
+                  <th
+                    key={columnKey}
+                    scope="col"
+                    aria-sort={column.sortable ? (ariaSortValue ?? "none") : undefined}
+                    className={cn(
+                      "px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+                      column.align === "center" && "text-center",
+                      column.align === "right" && "text-right",
+                      column.sortable && "cursor-pointer select-none hover:bg-muted/80"
                     )}
-                  </div>
-                </th>
-              ))}
+                    style={{ width: column.width }}
+                    onClick={() => handleSort(column)}
+                  >
+                    <div className={cn(
+                      "flex items-center gap-1",
+                      column.align === "center" && "justify-center",
+                      column.align === "right" && "justify-end"
+                    )}>
+                      {column.sortable ? (
+                        <button
+                          type="button"
+                          className="flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+                          aria-label={`Ordenar por ${column.header}${isSorted ? `, atualmente ${sortDirection === "asc" ? "crescente" : "decrescente"}` : ""}`}
+                          tabIndex={0}
+                        >
+                          {column.header}
+                          <span className="text-muted-foreground/50" aria-hidden="true">
+                            {isSorted ? (
+                              sortDirection === "asc" ? (
+                                <ChevronUp className="size-4" />
+                              ) : (
+                                <ChevronDown className="size-4" />
+                              )
+                            ) : (
+                              <ChevronsUpDown className="size-3" />
+                            )}
+                          </span>
+                        </button>
+                      ) : (
+                        column.header
+                      )}
+                    </div>
+                  </th>
+                )
+              })}
             </tr>
           </thead>
 

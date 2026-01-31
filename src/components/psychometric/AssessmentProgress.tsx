@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { INSTRUMENTS, type InstrumentMeta } from "@/types/psychometric";
+import { INSTRUMENTS } from "@/types/psychometric";
 import { Check, Circle, Loader2 } from "lucide-react";
 
 interface AssessmentProgressProps {

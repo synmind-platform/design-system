@@ -30,7 +30,7 @@ export function ForcedChoice({
   variant = "combined",
   className,
 }: ForcedChoiceProps) {
-  const [selectingType, setSelectingType] = useState<"most" | "least" | null>(
+  const [_selectingType, _setSelectingType] = useState<"most" | "least" | null>(
     null
   );
 

@@ -213,12 +213,37 @@ Use classes utilitárias para alternar o contexto visual:
 - **Fonte Principal:** DM Sans (Google Fonts)
 - **Fonte Mono:** IBM Plex Mono
 
+## Testes
+
+```bash
+# Rodar todos os testes
+npm run test
+
+# Rodar em modo watch
+npm run test:watch
+
+# Cobertura de testes
+npm run test:coverage
+```
+
+O projeto possui 217 testes automatizados cobrindo componentes UI e psicométricos.
+
+## Acessibilidade (WCAG 2.1)
+
+Todos os componentes seguem as diretrizes WCAG 2.1:
+
+- **Tabelas**: Headers com `scope` e `aria-sort` para ordenação
+- **Gráficos SVG**: `role="img"` com `<title>` e `<desc>` descritivos
+- **KPIs**: `aria-label` em valores e indicadores de tendência
+- **Navegação por teclado**: Suporte completo em componentes interativos
+
 ## Tecnologias
 
 - React 18 + TypeScript
 - Tailwind CSS v4
 - Radix UI Primitives
 - Vite
+- Vitest + React Testing Library
 - Design OS Methodology
 
 ## Licença
