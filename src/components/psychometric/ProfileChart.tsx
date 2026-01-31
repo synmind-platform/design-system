@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import type { SYM4Dimension } from "@/types/psychometric";
 
@@ -41,7 +42,7 @@ const dimensions: (keyof SYM4Dimension)[] = [
   "analytical",
 ];
 
-export function ProfileChart({
+export const ProfileChart = memo(function ProfileChart({
   graphI,
   graphII,
   size = 300,
@@ -70,10 +71,13 @@ export function ProfileChart({
   const barWidth = size - labelWidth - valueWidth - 24;
   const totalHeight = dimensions.length * (barHeight + gap) - gap;
 
-  // Generate accessible description
-  const chartDescription = dimensions
-    .map((dim) => `${dimensionConfig[dim].label}: ${Math.round(graphI[dim] ?? 0)}%`)
-    .join(", ");
+  // Memoize accessible description
+  const chartDescription = useMemo(() =>
+    dimensions
+      .map((dim) => `${dimensionConfig[dim].label}: ${Math.round(graphI[dim] ?? 0)}%`)
+      .join(", "),
+    [graphI]
+  );
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
@@ -179,9 +183,9 @@ export function ProfileChart({
       )}
     </div>
   );
-}
+});
 
-function DiamondChart({
+const DiamondChart = memo(function DiamondChart({
   graphI,
   graphII,
   size,
@@ -193,31 +197,49 @@ function DiamondChart({
   const centerY = size! / 2;
   const maxRadius = (size! / 2) * 0.7;
 
-  const getPoint = (_dimension: keyof SYM4Dimension, value: number, index: number) => {
-    const normalizedValue = Math.max(0, Math.min(100, value)) / 100;
-    const angle = (index * Math.PI) / 2 - Math.PI / 2; // Start from top
-    const radius = normalizedValue * maxRadius;
-    return {
-      x: centerX + radius * Math.cos(angle),
-      y: centerY + radius * Math.sin(angle),
-      labelX: centerX + (maxRadius + 30) * Math.cos(angle),
-      labelY: centerY + (maxRadius + 30) * Math.sin(angle),
+  // Memoize path calculations
+  const { graphIPath, graphIIPath, points, chartDescription } = useMemo(() => {
+    const getPoint = (_dimension: keyof SYM4Dimension, value: number, index: number) => {
+      const normalizedValue = Math.max(0, Math.min(100, value)) / 100;
+      const angle = (index * Math.PI) / 2 - Math.PI / 2; // Start from top
+      const radius = normalizedValue * maxRadius;
+      return {
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle),
+        labelX: centerX + (maxRadius + 30) * Math.cos(angle),
+        labelY: centerY + (maxRadius + 30) * Math.sin(angle),
+      };
     };
-  };
 
-  const createPath = (data: SYM4Dimension) => {
-    return dimensions
-      .map((dim, i) => {
-        const point = getPoint(dim, data[dim] ?? 0, i);
-        return `${i === 0 ? "M" : "L"} ${point.x} ${point.y}`;
-      })
-      .join(" ") + " Z";
-  };
+    const createPath = (data: SYM4Dimension) => {
+      return dimensions
+        .map((dim, i) => {
+          const point = getPoint(dim, data[dim] ?? 0, i);
+          return `${i === 0 ? "M" : "L"} ${point.x} ${point.y}`;
+        })
+        .join(" ") + " Z";
+    };
 
-  // Generate accessible description
-  const chartDescription = dimensions
-    .map((dim) => `${dimensionConfig[dim].label}: ${Math.round(graphI[dim] ?? 0)}%`)
-    .join(", ");
+    // Calculate points for labels
+    const calculatedPoints = dimensions.map((dim, i) => ({
+      dim,
+      config: dimensionConfig[dim],
+      value: graphI[dim] ?? 0,
+      ...getPoint(dim, graphI[dim] ?? 0, i),
+    }));
+
+    // Generate accessible description
+    const description = dimensions
+      .map((dim) => `${dimensionConfig[dim].label}: ${Math.round(graphI[dim] ?? 0)}%`)
+      .join(", ");
+
+    return {
+      graphIPath: createPath(graphI),
+      graphIIPath: graphII ? createPath(graphII) : null,
+      points: calculatedPoints,
+      chartDescription: description,
+    };
+  }, [graphI, graphII, centerX, centerY, maxRadius]);
 
   return (
     <div className={cn("flex flex-col items-center gap-4", className)}>
@@ -271,9 +293,9 @@ function DiamondChart({
         })}
 
         {/* Graph II (if provided) */}
-        {graphII && (
+        {graphIIPath && (
           <path
-            d={createPath(graphII)}
+            d={graphIIPath}
             fill="var(--color-synmind-orange-400)"
             fillOpacity={0.15}
             stroke="var(--color-synmind-orange-500)"
@@ -285,7 +307,7 @@ function DiamondChart({
 
         {/* Graph I */}
         <path
-          d={createPath(graphI)}
+          d={graphIPath}
           fill="var(--color-synmind-blue-400)"
           fillOpacity={0.25}
           stroke="var(--color-synmind-blue-500)"
@@ -294,38 +316,32 @@ function DiamondChart({
         />
 
         {/* Points and labels */}
-        {dimensions.map((dim, i) => {
-          const config = dimensionConfig[dim];
-          const value = graphI[dim] ?? 0;
-          const point = getPoint(dim, value, i);
-
-          return (
-            <g key={dim}>
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r={5}
-                fill="var(--color-synmind-blue-500)"
-                stroke="white"
-                strokeWidth={2}
-              />
-              {showLabels && (
-                <text
-                  x={point.labelX}
-                  y={point.labelY}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  className="text-xs fill-muted-foreground font-medium"
-                >
-                  <tspan className="font-bold fill-foreground">
-                    {config.short}
-                  </tspan>{" "}
-                  {Math.round(value)}
-                </text>
-              )}
-            </g>
-          );
-        })}
+        {points.map((point) => (
+          <g key={point.dim}>
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r={5}
+              fill="var(--color-synmind-blue-500)"
+              stroke="white"
+              strokeWidth={2}
+            />
+            {showLabels && (
+              <text
+                x={point.labelX}
+                y={point.labelY}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                className="text-xs fill-muted-foreground font-medium"
+              >
+                <tspan className="font-bold fill-foreground">
+                  {point.config.short}
+                </tspan>{" "}
+                {Math.round(point.value)}
+              </text>
+            )}
+          </g>
+        ))}
       </svg>
 
       {showLegend && graphII && (
@@ -342,4 +358,4 @@ function DiamondChart({
       )}
     </div>
   );
-}
+});

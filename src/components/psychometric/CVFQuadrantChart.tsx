@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import type { CVFQuadrant } from "@/types/psychometric";
 
@@ -24,7 +25,7 @@ const quadrantColors = {
   hierarchy: "var(--color-synmind-blue-600)",
 };
 
-export function CVFQuadrantChart({
+export const CVFQuadrantChart = memo(function CVFQuadrantChart({
   perceived,
   values,
   size = 300,
@@ -38,6 +39,53 @@ export function CVFQuadrantChart({
     (key) => typeof perceived[key] === 'number' && !Number.isNaN(perceived[key])
   );
 
+  const centerX = size / 2;
+  const centerY = size / 2;
+  const maxRadius = (size / 2) * 0.75;
+
+  // Memoize path calculations and descriptions
+  const { perceivedPath, valuesPath, perceivedDescription, valuesDescription } = useMemo(() => {
+    // CVF uses 4 quadrants, each value represents percentage in that quadrant
+    // Position: top-left=clan, top-right=adhocracy, bottom-right=market, bottom-left=hierarchy
+    const getQuadrantPath = (data: CVFQuadrant) => {
+      const positions = [
+        { key: "clan", angle: Math.PI * 1.25 }, // Top-left
+        { key: "adhocracy", angle: Math.PI * 1.75 }, // Top-right
+        { key: "market", angle: Math.PI * 0.25 }, // Bottom-right
+        { key: "hierarchy", angle: Math.PI * 0.75 }, // Bottom-left
+      ];
+
+      return positions
+        .map(({ key, angle }, i) => {
+          const value = data[key as keyof CVFQuadrant] ?? 0;
+          const normalizedValue = Math.max(0, Math.min(100, value)) / 100;
+          const radius = normalizedValue * maxRadius;
+          const x = centerX + radius * Math.cos(angle);
+          const y = centerY + radius * Math.sin(angle);
+          return `${i === 0 ? "M" : "L"} ${x} ${y}`;
+        })
+        .join(" ") + " Z";
+    };
+
+    // Generate accessible description of the chart data
+    const pDescription = Object.entries(perceived)
+      .map(([key, value]) => `${quadrantLabels[key as keyof typeof quadrantLabels]?.name || key}: ${Math.round(value)}%`)
+      .join(", ");
+
+    const vDescription = values
+      ? Object.entries(values)
+          .map(([key, value]) => `${quadrantLabels[key as keyof typeof quadrantLabels]?.name || key}: ${Math.round(value)}%`)
+          .join(", ")
+      : null;
+
+    return {
+      perceivedPath: getQuadrantPath(perceived),
+      valuesPath: values ? getQuadrantPath(values) : null,
+      perceivedDescription: pDescription,
+      valuesDescription: vDescription,
+    };
+  }, [perceived, values, centerX, centerY, maxRadius]);
+
   if (!hasValidData) {
     return (
       <div className={cn("flex flex-col items-center gap-4", className)}>
@@ -50,43 +98,6 @@ export function CVFQuadrantChart({
       </div>
     );
   }
-
-  const centerX = size / 2;
-  const centerY = size / 2;
-  const maxRadius = (size / 2) * 0.75;
-
-  // CVF uses 4 quadrants, each value represents percentage in that quadrant
-  // Position: top-left=clan, top-right=adhocracy, bottom-right=market, bottom-left=hierarchy
-  const getQuadrantPath = (data: CVFQuadrant, _offset = 0) => {
-    const positions = [
-      { key: "clan", angle: Math.PI * 1.25 }, // Top-left
-      { key: "adhocracy", angle: Math.PI * 1.75 }, // Top-right
-      { key: "market", angle: Math.PI * 0.25 }, // Bottom-right
-      { key: "hierarchy", angle: Math.PI * 0.75 }, // Bottom-left
-    ];
-
-    return positions
-      .map(({ key, angle }, i) => {
-        const value = data[key as keyof CVFQuadrant] ?? 0;
-        const normalizedValue = Math.max(0, Math.min(100, value)) / 100;
-        const radius = normalizedValue * maxRadius;
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
-        return `${i === 0 ? "M" : "L"} ${x} ${y}`;
-      })
-      .join(" ") + " Z";
-  };
-
-  // Generate accessible description of the chart data
-  const perceivedDescription = Object.entries(perceived)
-    .map(([key, value]) => `${quadrantLabels[key as keyof typeof quadrantLabels]?.name || key}: ${Math.round(value)}%`)
-    .join(", ");
-
-  const valuesDescription = values
-    ? Object.entries(values)
-        .map(([key, value]) => `${quadrantLabels[key as keyof typeof quadrantLabels]?.name || key}: ${Math.round(value)}%`)
-        .join(", ")
-    : null;
 
   return (
     <div className={cn("flex flex-col items-center gap-4", className)}>
@@ -175,9 +186,9 @@ export function CVFQuadrantChart({
           ))}
 
           {/* Values polygon (if provided) */}
-          {values && (
+          {valuesPath && (
             <path
-              d={getQuadrantPath(values)}
+              d={valuesPath}
               fill="var(--color-synmind-orange-400)"
               fillOpacity={0.15}
               stroke="var(--color-synmind-orange-500)"
@@ -189,7 +200,7 @@ export function CVFQuadrantChart({
 
           {/* Perceived polygon */}
           <path
-            d={getQuadrantPath(perceived)}
+            d={perceivedPath}
             fill="var(--color-synmind-blue-400)"
             fillOpacity={0.25}
             stroke="var(--color-synmind-blue-500)"
@@ -286,4 +297,4 @@ export function CVFQuadrantChart({
       )}
     </div>
   );
-}
+});

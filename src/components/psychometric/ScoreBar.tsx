@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 import type { ClassificationLabel } from "@/types/psychometric";
 
@@ -24,7 +25,7 @@ const sizeClasses = {
   lg: "h-4",
 };
 
-export function ScoreBar({
+export const ScoreBar = memo(function ScoreBar({
   value,
   label,
   classification,
@@ -102,4 +103,4 @@ export function ScoreBar({
       </div>
     </div>
   );
-}
+});

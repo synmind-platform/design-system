@@ -1,5 +1,5 @@
+import { memo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 import { TouchSlider } from "./TouchSlider";
 
 interface LikertScaleProps {
@@ -35,7 +35,7 @@ const defaultLabels: Record<number, { low: string; high: string; mid?: string }>
   },
 };
 
-export function LikertScale({
+export const LikertScale = memo(function LikertScale({
   questionId,
   question,
   scale,
@@ -197,5 +197,4 @@ export function LikertScale({
       </div>
     </div>
   );
-}
-
+});

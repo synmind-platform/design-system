@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 interface AllocationOption {
   id: string;
@@ -112,6 +112,34 @@ export function AllocationSlider({
     onChange?.(questionId, newValues);
   };
 
+  // Memoize pie chart slice paths
+  const pieSlices = useMemo(() => {
+    let currentAngle = -90;
+    return options.map((opt, i) => {
+      const value = values[opt.id] || 0;
+      const percentage = value / total;
+      const angle = percentage * 360;
+      const startAngle = currentAngle;
+      const endAngle = currentAngle + angle;
+      currentAngle = endAngle;
+
+      const startRad = (startAngle * Math.PI) / 180;
+      const endRad = (endAngle * Math.PI) / 180;
+      const x1 = 80 + 70 * Math.cos(startRad);
+      const y1 = 80 + 70 * Math.sin(startRad);
+      const x2 = 80 + 70 * Math.cos(endRad);
+      const y2 = 80 + 70 * Math.sin(endRad);
+      const largeArc = angle > 180 ? 1 : 0;
+
+      return {
+        id: opt.id,
+        path: `M 80 80 L ${x1} ${y1} A 70 70 0 ${largeArc} 1 ${x2} ${y2} Z`,
+        color: opt.color || defaultColors[i % defaultColors.length],
+        percentage,
+      };
+    });
+  }, [options, values, total]);
+
   if (variant === "pie") {
     return (
       <div className={cn("space-y-4", className)}>
@@ -123,36 +151,16 @@ export function AllocationSlider({
           {/* Pie chart */}
           <div className="relative">
             <svg width={160} height={160} viewBox="0 0 160 160">
-              {(() => {
-                let currentAngle = -90;
-                return options.map((opt, i) => {
-                  const value = values[opt.id] || 0;
-                  const percentage = value / total;
-                  const angle = percentage * 360;
-                  const startAngle = currentAngle;
-                  const endAngle = currentAngle + angle;
-                  currentAngle = endAngle;
-
-                  const startRad = (startAngle * Math.PI) / 180;
-                  const endRad = (endAngle * Math.PI) / 180;
-                  const x1 = 80 + 70 * Math.cos(startRad);
-                  const y1 = 80 + 70 * Math.sin(startRad);
-                  const x2 = 80 + 70 * Math.cos(endRad);
-                  const y2 = 80 + 70 * Math.sin(endRad);
-                  const largeArc = angle > 180 ? 1 : 0;
-
-                  if (percentage === 0) return null;
-
-                  return (
-                    <path
-                      key={opt.id}
-                      d={`M 80 80 L ${x1} ${y1} A 70 70 0 ${largeArc} 1 ${x2} ${y2} Z`}
-                      fill={opt.color || defaultColors[i % defaultColors.length]}
-                      className="transition-all duration-300"
-                    />
-                  );
-                });
-              })()}
+              {pieSlices.map((slice) =>
+                slice.percentage === 0 ? null : (
+                  <path
+                    key={slice.id}
+                    d={slice.path}
+                    fill={slice.color}
+                    className="transition-all duration-300"
+                  />
+                )
+              )}
               <circle cx={80} cy={80} r={35} fill="var(--background)" />
               <text
                 x={80}

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScoreBar } from "./ScoreBar";
@@ -35,7 +36,7 @@ const classificationColors: Record<ClassificationLabel, string> = {
   VERY_HIGH: "text-synmind-orange-500",
 };
 
-export function ScoreCard({
+export const ScoreCard = memo(function ScoreCard({
   dimension,
   score,
   previousScore,
@@ -157,4 +158,4 @@ export function ScoreCard({
       </CardContent>
     </Card>
   );
-}
+});

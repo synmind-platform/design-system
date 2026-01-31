@@ -23,7 +23,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 interface InstrumentResultCardProps {
   result: PsychometricResult;
@@ -52,7 +52,8 @@ export function InstrumentResultCard({
   const instrument = INSTRUMENTS[result.instrument_id];
   const Icon = instrumentIcons[result.instrument_id] || BarChart3;
 
-  const renderChart = () => {
+  // Memoize chart rendering to avoid recalculating on unrelated state changes
+  const chart = useMemo(() => {
     if (!showChart) return null;
 
     switch (result.instrument_id) {
@@ -105,7 +106,7 @@ export function InstrumentResultCard({
       default:
         return null;
     }
-  };
+  }, [result, instrument, showChart]);
 
   const renderScoreBars = () => {
     if (!showDetails || !expanded) return null;
@@ -243,7 +244,7 @@ export function InstrumentResultCard({
       <CardContent className="space-y-6">
         {/* Chart */}
         {showChart && (
-          <div className="flex justify-center py-4">{renderChart()}</div>
+          <div className="flex justify-center py-4">{chart}</div>
         )}
 
         {/* Version info */}

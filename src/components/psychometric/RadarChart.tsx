@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { DIMENSION_LABELS } from "@/types/psychometric";
 
@@ -11,7 +12,7 @@ interface RadarChartProps {
   className?: string;
 }
 
-export function RadarChart({
+export const RadarChart = memo(function RadarChart({
   scores,
   dimensions,
   size = 280,
@@ -37,43 +38,48 @@ export function RadarChart({
   const angleStep = (2 * Math.PI) / dimensions.length;
   const startAngle = -Math.PI / 2; // Start from top
 
-  // Calculate points for each dimension
-  const getPoint = (dimension: string, index: number) => {
-    const value = scores[dimension] ?? 0;
-    const normalizedValue = Math.max(0, Math.min(100, value)) / 100;
-    const angle = startAngle + index * angleStep;
-    const radius = normalizedValue * maxRadius;
-    return {
-      x: centerX + radius * Math.cos(angle),
-      y: centerY + radius * Math.sin(angle),
-      labelX: centerX + (maxRadius + 24) * Math.cos(angle),
-      labelY: centerY + (maxRadius + 24) * Math.sin(angle),
-      value,
-      angle,
+  // Memoize SVG calculations
+  const { points, polygonPath, chartDescription } = useMemo(() => {
+    // Calculate points for each dimension
+    const getPoint = (dimension: string, index: number) => {
+      const value = scores[dimension] ?? 0;
+      const normalizedValue = Math.max(0, Math.min(100, value)) / 100;
+      const angle = startAngle + index * angleStep;
+      const radius = normalizedValue * maxRadius;
+      return {
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle),
+        labelX: centerX + (maxRadius + 24) * Math.cos(angle),
+        labelY: centerY + (maxRadius + 24) * Math.sin(angle),
+        value,
+        angle,
+      };
     };
-  };
 
-  const points = dimensions.map((dim, i) => ({
-    dimension: dim,
-    ...getPoint(dim, i),
-  }));
+    const calculatedPoints = dimensions.map((dim, i) => ({
+      dimension: dim,
+      ...getPoint(dim, i),
+    }));
 
-  // Create polygon path
-  const polygonPath = points
-    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
-    .join(" ") + " Z";
+    // Create polygon path
+    const path = calculatedPoints
+      .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+      .join(" ") + " Z";
+
+    // Generate accessible description of the chart data
+    const description = dimensions
+      .map((dim) => {
+        const label = DIMENSION_LABELS[dim] || dim;
+        const value = Math.round(scores[dim] ?? 0);
+        return `${label}: ${value}%`;
+      })
+      .join(", ");
+
+    return { points: calculatedPoints, polygonPath: path, chartDescription: description };
+  }, [scores, dimensions, size, centerX, centerY, maxRadius, angleStep, startAngle]);
 
   // Grid circles (25%, 50%, 75%, 100%)
   const gridLevels = [0.25, 0.5, 0.75, 1];
-
-  // Generate accessible description of the chart data
-  const chartDescription = dimensions
-    .map((dim) => {
-      const label = DIMENSION_LABELS[dim] || dim;
-      const value = Math.round(scores[dim] ?? 0);
-      return `${label}: ${value}%`;
-    })
-    .join(", ");
 
   return (
     <div className={cn("relative", className)}>
@@ -187,4 +193,4 @@ export function RadarChart({
       </svg>
     </div>
   );
-}
+});
