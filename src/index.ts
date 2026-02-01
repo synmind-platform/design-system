@@ -5,6 +5,9 @@
  * Includes UI components, psychometric visualizations, and brand elements.
  */
 
+// Import CSS for library build
+import "./index.css"
+
 // ============================================================================
 // UI Components - Base (shadcn/ui)
 // ============================================================================
@@ -82,6 +85,30 @@ export {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "./components/ui/collapsible";
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+} from "./components/ui/select";
+export {
+  Toast,
+  ToastProvider,
+  ToastViewport,
+  ToastTitle,
+  ToastDescription,
+  ToastClose,
+  ToastAction,
+  toastVariants,
+} from "./components/ui/toast";
+export type { ToastProps, ToastActionElement, ToastVariant } from "./components/ui/toast";
+export { Toaster } from "./components/ui/toaster";
 
 // ============================================================================
 // UI Components - SynMind Custom
@@ -151,7 +178,7 @@ export { AppLayout } from "./components/AppLayout";
 // ============================================================================
 // Hooks
 // ============================================================================
-export { useCollapsible, usePagination } from "./hooks";
+export { useCollapsible, usePagination, useToast, toast } from "./hooks";
 export type {
   UseCollapsibleOptions,
   UseCollapsibleReturn,

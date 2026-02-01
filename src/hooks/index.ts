@@ -9,3 +9,5 @@ export type { UseCollapsibleOptions, UseCollapsibleReturn } from "./useCollapsib
 
 export { usePagination } from "./usePagination";
 export type { UsePaginationOptions, UsePaginationReturn } from "./usePagination";
+
+export { useToast, toast } from "./use-toast";
