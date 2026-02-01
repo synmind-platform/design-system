@@ -20,6 +20,9 @@ export {
   CardContent,
 } from "./components/ui/card";
 export { Input } from "./components/ui/input";
+export { Textarea } from "./components/ui/textarea";
+export { Checkbox } from "./components/ui/checkbox";
+export type { CheckboxProps } from "./components/ui/checkbox";
 export { Label } from "./components/ui/label";
 export { Separator } from "./components/ui/separator";
 export { Skeleton } from "./components/ui/skeleton";

@@ -11,6 +11,9 @@ export {
   CardContent,
 } from "./card"
 export { Input } from "./input"
+export { Textarea } from "./textarea"
+export { Checkbox } from "./checkbox"
+export type { CheckboxProps } from "./checkbox"
 export { Label } from "./label"
 export { Separator } from "./separator"
 export { Skeleton } from "./skeleton"
