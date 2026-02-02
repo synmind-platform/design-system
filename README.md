@@ -59,13 +59,22 @@ npm run build
 ### Componentes de Avaliação Psicométrica
 Inspirados nos instrumentos SynMind (SM_BIG5_20, SM_TEI_20, SM_CVF_24, SM_ESQ_36, SM_SYM4_24):
 
-- `ScoreGauge` - Barra de score 0-100 com faixas descritivas
-- `RadarChart` - Gráfico radar para perfis multidimensionais
-- `QuadrantChart` - Quadrante CVF (Clã/Adhocracia/Mercado/Hierarquia)
-- `ProfileCard` - Card de perfil psicométrico completo
-- `AssessmentProgress` - Progresso em bateria de avaliações
-- `FitIndicator` - Indicador de aderência/fit cultural
-- `DimensionComparison` - Comparação lado a lado de dimensões
+**Visualização de Resultados:**
+- `RadarChart` - Gráfico radar responsivo (BIG5, TEI) - agora com `size="responsive"`
+- `CVFQuadrantChart` - Quadrante CVF com comparação percebido/desejado
+- `ProfileChart` - Perfil SYM4/DISC (variantes bar/diamond, Graph I/II)
+- `ScoreBar` - Barra de progresso com estados vazios (`value={null}`)
+- `ScoreCard` - Card de score com hierarquia visual clara
+- `QualityBadge` - Indicador de qualidade do questionário
+- `InstrumentResultCard` - Card completo de resultado
+- `AssessmentProgress` - Progresso em bateria (variante `auto` responsiva)
+- `EmptyState` - Componente reutilizável para estados vazios
+
+**Coleta de Respostas:**
+- `LikertScale` - Escala Likert (variantes: buttons, slider, radio, touch, **auto**)
+- `TouchSlider` - Slider otimizado para touch (thumbSize mínimo 44px)
+- `ForcedChoice` - Tétrade SYM4 (variantes: combined/separate)
+- `AllocationSlider` - Alocação de 100 pontos (CVF) com validação visual
 
 ## Estrutura do Projeto
 
@@ -226,7 +235,7 @@ npm run test:watch
 npm run test:coverage
 ```
 
-O projeto possui 217 testes automatizados cobrindo componentes UI e psicométricos.
+O projeto possui 775 testes automatizados cobrindo componentes UI e psicométricos, incluindo testes de acessibilidade (jest-axe).
 
 ## Acessibilidade (WCAG 2.1)
 
@@ -245,6 +254,30 @@ Todos os componentes seguem as diretrizes WCAG 2.1:
 - Vite
 - Vitest + React Testing Library
 - Design OS Methodology
+
+## Changelog v0.2.0 (Breaking Changes)
+
+### Novos Recursos
+- **Gráficos Responsivos**: `size="responsive"` em RadarChart, ProfileChart, CVFQuadrantChart
+- **Estados Vazios**: `score={null}` em ScoreCard/ScoreBar, `result={null}` em InstrumentResultCard
+- **Variante Auto**: LikertScale com detecção automática de touch devices
+- **AssessmentProgress Auto**: Responsivo automático (compact/vertical/horizontal)
+- **Modo Readonly**: Props `readonly` em LikertScale, ForcedChoice, AllocationSlider
+- **Comparação CVF**: Distinção visual clara percebido (sólido) vs desejado (tracejado)
+- **ProfileChart Dual**: Graph I (natural) vs Graph II (adaptado) com legenda
+
+### Breaking Changes
+- `ScoreCard.score` agora aceita `number | null` (antes apenas `number`)
+- `ScoreBar.value` agora aceita `number | null`
+- `InstrumentResultCard.result` agora aceita `PsychometricResult | null`
+- Props removidas: `ScoreGauge` renomeado para `ScoreBar`
+- CVFQuadrantChart: prop `desired` renomeada para `values`
+
+### Acessibilidade
+- Touch targets mínimos de 44px em todos os componentes interativos
+- SVGs com `role="img"`, `<title>`, e `<desc>` descritivos
+- Navegação por teclado (Tab, Enter, Space, Arrow keys)
+- Contraste WCAG AA (>= 4.5:1) verificado
 
 ## Licença
 

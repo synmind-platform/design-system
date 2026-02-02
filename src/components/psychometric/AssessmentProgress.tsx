@@ -1,14 +1,53 @@
 import { cn } from "@/lib/utils";
 import { INSTRUMENTS } from "@/types/psychometric";
 import { Check, Circle, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+
+type VariantType = "horizontal" | "vertical" | "compact" | "auto";
 
 interface AssessmentProgressProps {
   instruments: string[];
   completedInstruments: string[];
   currentInstrument?: string;
-  variant?: "horizontal" | "vertical" | "compact";
+  variant?: VariantType;
   showEstimatedTime?: boolean;
   className?: string;
+}
+
+/**
+ * Hook to determine the resolved variant based on viewport width
+ * - viewport < 640px → "compact"
+ * - viewport 640-1023px → "vertical"
+ * - viewport >= 1024px → "horizontal"
+ */
+function useAutoVariant(variant: VariantType): Exclude<VariantType, "auto"> {
+  const [resolvedVariant, setResolvedVariant] = useState<Exclude<VariantType, "auto">>(
+    variant === "auto" ? "horizontal" : variant
+  );
+
+  useEffect(() => {
+    if (variant !== "auto") {
+      setResolvedVariant(variant);
+      return;
+    }
+
+    const updateVariant = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setResolvedVariant("compact");
+      } else if (width < 1024) {
+        setResolvedVariant("vertical");
+      } else {
+        setResolvedVariant("horizontal");
+      }
+    };
+
+    updateVariant();
+    window.addEventListener("resize", updateVariant);
+    return () => window.removeEventListener("resize", updateVariant);
+  }, [variant]);
+
+  return resolvedVariant;
 }
 
 export function AssessmentProgress({
@@ -19,6 +58,7 @@ export function AssessmentProgress({
   showEstimatedTime = false,
   className,
 }: AssessmentProgressProps) {
+  const resolvedVariant = useAutoVariant(variant);
   const totalEstimatedTime = instruments.reduce((sum, id) => {
     const instrument = INSTRUMENTS[id];
     return sum + (instrument?.estimated_time_minutes || 5);
@@ -31,7 +71,7 @@ export function AssessmentProgress({
 
   const progress = (completedInstruments.length / instruments.length) * 100;
 
-  if (variant === "compact") {
+  if (resolvedVariant === "compact") {
     return (
       <div className={cn("space-y-2", className)}>
         <div className="flex items-center justify-between text-sm">
@@ -54,7 +94,7 @@ export function AssessmentProgress({
     );
   }
 
-  if (variant === "vertical") {
+  if (resolvedVariant === "vertical") {
     return (
       <div className={cn("space-y-1", className)}>
         {instruments.map((id, index) => {

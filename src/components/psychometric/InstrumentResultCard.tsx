@@ -26,7 +26,7 @@ import {
 import { useState, useMemo } from "react";
 
 interface InstrumentResultCardProps {
-  result: PsychometricResult;
+  result: PsychometricResult | null;
   expanded?: boolean;
   showChart?: boolean;
   showDetails?: boolean;
@@ -49,6 +49,20 @@ export function InstrumentResultCard({
   className,
 }: InstrumentResultCardProps) {
   const [expanded, setExpanded] = useState(initialExpanded);
+
+  // Handle null result - show empty state
+  if (result === null) {
+    return (
+      <Card className={cn("overflow-hidden", className)}>
+        <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+          <BarChart3 className="size-12 mb-4 opacity-40" />
+          <p className="text-sm font-medium">Resultado não disponível</p>
+          <p className="text-xs mt-1">Aguardando conclusão do instrumento</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const instrument = INSTRUMENTS[result.instrument_id];
   const Icon = instrumentIcons[result.instrument_id] || BarChart3;
 

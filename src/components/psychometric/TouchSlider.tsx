@@ -1,6 +1,9 @@
 import { cn } from "@/lib/utils";
 import { useState, useRef, useCallback } from "react";
 
+/** Minimum touch target size for accessibility (WCAG 2.5.5) */
+const MIN_THUMB_SIZE = 44;
+
 export interface TouchSliderProps {
   /** Current value */
   value?: number;
@@ -18,6 +21,10 @@ export interface TouchSliderProps {
   };
   /** Whether the slider is disabled */
   disabled?: boolean;
+  /** Size of the thumb in pixels (minimum 44px for accessibility) */
+  thumbSize?: number;
+  /** Show value tooltip during drag */
+  showDragValue?: boolean;
   /** Additional class name */
   className?: string;
 }
@@ -35,8 +42,17 @@ export function TouchSlider({
   max = 5,
   labels,
   disabled = false,
+  thumbSize: rawThumbSize,
+  showDragValue = true,
   className,
 }: TouchSliderProps) {
+  // Enforce minimum thumb size for accessibility
+  const thumbSize = Math.max(rawThumbSize ?? 56, MIN_THUMB_SIZE);
+
+  // Warn in development if thumbSize was below minimum
+  if (import.meta.env?.DEV && rawThumbSize && rawThumbSize < MIN_THUMB_SIZE) {
+    console.warn(`TouchSlider: thumbSize (${rawThumbSize}px) is below the minimum accessible size (${MIN_THUMB_SIZE}px). Using ${MIN_THUMB_SIZE}px instead.`);
+  }
   const trackRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [tempValue, setTempValue] = useState<number | null>(null);
@@ -154,7 +170,7 @@ export function TouchSlider({
             style={{ width: `${thumbPosition}%` }}
           />
 
-          {/* Step points */}
+          {/* Step points - minimum 44px touch area */}
           {options.map((option) => {
             const position = ((option - min) / range) * 100;
             const isActive = option <= currentValue;
@@ -166,15 +182,18 @@ export function TouchSlider({
                 type="button"
                 onClick={() => handlePointClick(option)}
                 disabled={disabled}
+                aria-label={`Selecionar valor ${option}`}
+                aria-pressed={isSelected}
                 className={cn(
                   "absolute top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all",
-                  "w-6 h-6 rounded-full border-2 flex items-center justify-center",
+                  // Minimum 44px touch target for accessibility
+                  "min-w-[44px] min-h-[44px] rounded-full border-2 flex items-center justify-center",
                   "focus:outline-none focus:ring-2 focus:ring-synmind-blue-500 focus:ring-offset-2",
                   isSelected
-                    ? "w-8 h-8 border-synmind-blue-500 bg-synmind-blue-500 text-white text-xs font-bold"
+                    ? "w-11 h-11 border-synmind-blue-500 bg-synmind-blue-500 text-white text-sm font-bold"
                     : isActive
-                      ? "border-synmind-blue-400 bg-synmind-blue-400"
-                      : "border-border bg-background hover:border-synmind-blue-300"
+                      ? "w-8 h-8 border-synmind-blue-400 bg-synmind-blue-400"
+                      : "w-8 h-8 border-border bg-background hover:border-synmind-blue-300"
                 )}
                 style={{ left: `${position}%` }}
               >
@@ -183,19 +202,24 @@ export function TouchSlider({
             );
           })}
 
-          {/* Draggable thumb */}
+          {/* Draggable thumb - enforces minimum 44px size */}
           <div
             className={cn(
               "absolute top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-transform",
-              "w-14 h-14 rounded-full",
+              "rounded-full",
               "bg-synmind-blue-500 shadow-lg",
               "flex items-center justify-center text-white font-bold text-xl",
               "ring-4 ring-synmind-blue-500/30",
               isDragging && "scale-110 ring-8"
             )}
-            style={{ left: `${thumbPosition}%` }}
+            style={{
+              left: `${thumbPosition}%`,
+              width: `${thumbSize}px`,
+              height: `${thumbSize}px`,
+            }}
+            aria-hidden="true"
           >
-            {currentValue}
+            {showDragValue && currentValue}
           </div>
         </div>
       </div>

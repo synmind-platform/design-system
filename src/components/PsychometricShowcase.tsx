@@ -143,11 +143,12 @@ export function PsychometricShowcase() {
       </div>
 
       <Tabs defaultValue="visualization" className="space-y-6">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="visualization">Visualização</TabsTrigger>
           <TabsTrigger value="inputs">Questionários</TabsTrigger>
           <TabsTrigger value="results">Resultados</TabsTrigger>
           <TabsTrigger value="progress">Progresso</TabsTrigger>
+          <TabsTrigger value="new-features">Novos Recursos</TabsTrigger>
         </TabsList>
 
         {/* Visualization Components */}
@@ -223,30 +224,77 @@ export function PsychometricShowcase() {
           <section className="space-y-4">
             <h2 className="text-xl font-semibold">ProfileChart</h2>
             <p className="text-sm text-muted-foreground">
-              Gráfico de perfil comportamental (SYM4/DISC).
+              Gráfico de perfil comportamental (SYM4/DISC). Suporta visualização
+              de perfil natural (Graph I) e adaptado (Graph II).
             </p>
             <div className="grid md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Variante Bar</CardTitle>
+                  <CardTitle className="text-base">
+                    Variante Bar - Apenas Graph I
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Exibe apenas o perfil natural
+                  </p>
                 </CardHeader>
                 <CardContent>
                   <ProfileChart
                     graphI={mockSYM4Result.scores_0_100.graph_i}
-                    graphII={mockSYM4Result.scores_0_100.graph_ii}
                     variant="bar"
                   />
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Variante Diamond</CardTitle>
+                  <CardTitle className="text-base">
+                    Variante Bar - Graph I e II
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Barras mostram perfil natural, linhas tracejadas mostram
+                    perfil adaptado
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <ProfileChart
+                    graphI={mockSYM4Result.scores_0_100.graph_i}
+                    graphII={mockSYM4Result.scores_0_100.graph_ii}
+                    variant="bar"
+                    showLegend
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">
+                    Variante Diamond - Apenas Graph I
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Exibe apenas o perfil natural
+                  </p>
+                </CardHeader>
+                <CardContent className="flex justify-center">
+                  <ProfileChart
+                    graphI={mockSYM4Result.scores_0_100.graph_i}
+                    variant="diamond"
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">
+                    Variante Diamond - Graph I e II
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Polígono sólido mostra perfil natural, polígono tracejado
+                    mostra perfil adaptado
+                  </p>
                 </CardHeader>
                 <CardContent className="flex justify-center">
                   <ProfileChart
                     graphI={mockSYM4Result.scores_0_100.graph_i}
                     graphII={mockSYM4Result.scores_0_100.graph_ii}
                     variant="diamond"
+                    showLegend
                   />
                 </CardContent>
               </Card>
@@ -381,6 +429,39 @@ export function PsychometricShowcase() {
                     question="Eu me adapto facilmente a novas situações."
                     scale={5}
                     variant="touch"
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Variante Auto</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Detecta automaticamente se é touch device e usa a variante apropriada
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <LikertScale
+                    questionId="q5"
+                    question="Eu prefiro trabalhar em equipe do que sozinho."
+                    scale={5}
+                    variant="auto"
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Variante Readonly</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Exibe valor selecionado sem permitir interação (útil para revisão)
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <LikertScale
+                    questionId="q6"
+                    question="Eu me considero uma pessoa organizada."
+                    scale={5}
+                    value={4}
+                    readonly
                   />
                 </CardContent>
               </Card>
@@ -602,7 +683,203 @@ export function PsychometricShowcase() {
                   </CardContent>
                 </Card>
               </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Variante Auto</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Seleciona automaticamente: compact (&lt;640px), vertical (640-1023px), horizontal (≥1024px)
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <AssessmentProgress
+                    instruments={[
+                      "SM_BIG5_20",
+                      "SM_TEI_20",
+                      "SM_CVF_24",
+                      "SM_SYM4_24",
+                    ]}
+                    completedInstruments={["SM_BIG5_20"]}
+                    currentInstrument="SM_TEI_20"
+                    variant="auto"
+                    showEstimatedTime
+                  />
+                </CardContent>
+              </Card>
             </div>
+          </section>
+        </TabsContent>
+
+        {/* New Features Demo */}
+        <TabsContent value="new-features" className="space-y-8">
+          {/* Responsive Charts */}
+          <section className="space-y-4">
+            <h2 className="text-xl font-semibold">Gráficos Responsivos</h2>
+            <p className="text-sm text-muted-foreground">
+              Gráficos com size="responsive" se adaptam automaticamente ao container.
+            </p>
+            <div className="grid md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">RadarChart Responsivo</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <RadarChart
+                    scores={mockBigFiveResult.scores_0_100}
+                    dimensions={INSTRUMENTS.SM_BIG5_20.dimensions}
+                    size="responsive"
+                    showValues
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">ProfileChart Responsivo</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ProfileChart
+                    graphI={mockSYM4Result.scores_0_100.graph_i}
+                    graphII={mockSYM4Result.scores_0_100.graph_ii}
+                    size="responsive"
+                    variant="diamond"
+                    showLegend
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">CVF Responsivo</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CVFQuadrantChart
+                    perceived={mockCVFResult.scores_0_100.perceived}
+                    values={mockCVFResult.scores_0_100.values}
+                    size="responsive"
+                    showLegend
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* Empty States */}
+          <section className="space-y-4">
+            <h2 className="text-xl font-semibold">Estados Vazios</h2>
+            <p className="text-sm text-muted-foreground">
+              Componentes tratam score=null e result=null graciosamente.
+            </p>
+            <div className="grid md:grid-cols-3 gap-6">
+              <ScoreCard
+                dimension="extraversion"
+                score={null}
+                variant="detailed"
+              />
+              <ScoreCard
+                dimension="agreeableness"
+                score={null}
+                variant="compact"
+              />
+              <InstrumentResultCard result={null} />
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">ScoreBar com Estado Vazio</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ScoreBar value={75} label="Score com valor" />
+                <ScoreBar value={null} label="Score vazio" />
+              </CardContent>
+            </Card>
+          </section>
+
+          <Separator />
+
+          {/* Touch Experience */}
+          <section className="space-y-4">
+            <h2 className="text-xl font-semibold">Experiência Touch</h2>
+            <p className="text-sm text-muted-foreground">
+              Variante "auto" detecta touch devices automaticamente.
+            </p>
+            <Card>
+              <CardContent className="p-6">
+                <LikertScale
+                  questionId="touch-demo"
+                  question="Esta escala usa variante 'auto' - em touch devices mostra slider, em desktop mostra botões."
+                  scale={5}
+                  variant="auto"
+                  value={likertValue}
+                  onChange={(_, v) => setLikertValue(v)}
+                />
+              </CardContent>
+            </Card>
+          </section>
+
+          <Separator />
+
+          {/* Readonly States */}
+          <section className="space-y-4">
+            <h2 className="text-xl font-semibold">Modo Somente Leitura</h2>
+            <p className="text-sm text-muted-foreground">
+              Componentes com prop readonly exibem valores sem permitir interação.
+            </p>
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">LikertScale Readonly</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <LikertScale
+                    questionId="readonly-likert"
+                    question="Resposta já submetida - modo revisão"
+                    scale={5}
+                    value={4}
+                    readonly
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">ForcedChoice Readonly</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ForcedChoice
+                    questionId="readonly-fc"
+                    options={[
+                      { id: "a", text: "Assertivo e direto" },
+                      { id: "b", text: "Sociável e entusiasmado" },
+                      { id: "c", text: "Paciente e colaborativo" },
+                      { id: "d", text: "Analítico e cuidadoso" },
+                    ]}
+                    mostSelected="a"
+                    leastSelected="c"
+                    readonly
+                    variant="combined"
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* CVF Comparison */}
+          <section className="space-y-4">
+            <h2 className="text-xl font-semibold">Comparação CVF Percebido vs Desejado</h2>
+            <p className="text-sm text-muted-foreground">
+              Distinção visual clara entre polígono sólido (percebido) e tracejado (desejado).
+            </p>
+            <Card>
+              <CardContent className="p-6 flex flex-col items-center">
+                <CVFQuadrantChart
+                  perceived={{ clan: 20, adhocracy: 15, market: 45, hierarchy: 20 }}
+                  values={{ clan: 35, adhocracy: 35, market: 20, hierarchy: 10 }}
+                  size="lg"
+                  showLabels
+                  showLegend
+                />
+              </CardContent>
+            </Card>
           </section>
         </TabsContent>
       </Tabs>

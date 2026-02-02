@@ -1,111 +1,158 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
-import type { CVFQuadrant } from "@/types/psychometric";
+import type { CVFQuadrant, ChartSize } from "@/types/psychometric";
+import { useChartSize } from "@/hooks/useChartSize";
+import { CHART_COLORS, QUADRANT_LABELS } from "@/lib/chart-colors";
+import { EmptyState } from "./EmptyState";
 
 interface CVFQuadrantChartProps {
   perceived: CVFQuadrant;
   values?: CVFQuadrant;
-  size?: number;
+  size?: ChartSize;
   showLabels?: boolean;
   showLegend?: boolean;
   className?: string;
 }
 
-const quadrantLabels = {
-  clan: { name: "Colaborativa", short: "Clan" },
-  adhocracy: { name: "Inovadora", short: "Adhocracia" },
-  market: { name: "Competitiva", short: "Mercado" },
-  hierarchy: { name: "Estruturada", short: "Hierarquia" },
+const quadrantColors = {
+  clan: CHART_COLORS.quadrants.clan,
+  adhocracy: CHART_COLORS.quadrants.adhocracy,
+  market: CHART_COLORS.quadrants.market,
+  hierarchy: CHART_COLORS.quadrants.hierarchy,
 };
 
-const quadrantColors = {
-  clan: "var(--color-synmind-blue-400)",
-  adhocracy: "var(--color-synmind-orange-400)",
-  market: "var(--color-synmind-orange-600)",
-  hierarchy: "var(--color-synmind-blue-600)",
+// Abbreviated labels for small sizes
+const QUADRANT_LABELS_SHORT: Record<keyof CVFQuadrant, string> = {
+  clan: "Cola",
+  adhocracy: "Inov",
+  market: "Comp",
+  hierarchy: "Estr",
 };
+
+// Threshold for showing vertex markers (extreme low values)
+const EXTREME_VALUE_THRESHOLD = 15;
+
+// Minimum visible radius to ensure polygon is visible
+const MIN_VISIBLE_RADIUS = 8;
 
 export const CVFQuadrantChart = memo(function CVFQuadrantChart({
   perceived,
   values,
-  size = 300,
+  size = "md",
   showLabels = true,
   showLegend = true,
   className,
 }: CVFQuadrantChartProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const resolvedSize = useChartSize(size, containerRef);
+
   // Validate perceived data has all required quadrants
   const requiredKeys: (keyof CVFQuadrant)[] = ['clan', 'adhocracy', 'market', 'hierarchy'];
   const hasValidData = requiredKeys.every(
     (key) => typeof perceived[key] === 'number' && !Number.isNaN(perceived[key])
   );
 
-  const centerX = size / 2;
-  const centerY = size / 2;
-  const maxRadius = (size / 2) * 0.75;
+  const centerX = resolvedSize / 2;
+  const centerY = resolvedSize / 2;
+  const maxRadius = (resolvedSize / 2) * 0.75;
 
-  // Memoize path calculations and descriptions
-  const { perceivedPath, valuesPath, perceivedDescription, valuesDescription } = useMemo(() => {
+  // Quadrant positions for path calculation
+  const quadrantPositions = useMemo(() => [
+    { key: "clan" as const, angle: Math.PI * 1.25 }, // Top-left
+    { key: "adhocracy" as const, angle: Math.PI * 1.75 }, // Top-right
+    { key: "market" as const, angle: Math.PI * 0.25 }, // Bottom-right
+    { key: "hierarchy" as const, angle: Math.PI * 0.75 }, // Bottom-left
+  ], []);
+
+  // Memoize path calculations, vertices, and descriptions
+  const {
+    perceivedPath,
+    valuesPath,
+    perceivedVertices,
+    valuesVertices,
+    hasExtremeValues,
+    perceivedDescription,
+    valuesDescription
+  } = useMemo(() => {
     // CVF uses 4 quadrants, each value represents percentage in that quadrant
     // Position: top-left=clan, top-right=adhocracy, bottom-right=market, bottom-left=hierarchy
-    const getQuadrantPath = (data: CVFQuadrant) => {
-      const positions = [
-        { key: "clan", angle: Math.PI * 1.25 }, // Top-left
-        { key: "adhocracy", angle: Math.PI * 1.75 }, // Top-right
-        { key: "market", angle: Math.PI * 0.25 }, // Bottom-right
-        { key: "hierarchy", angle: Math.PI * 0.75 }, // Bottom-left
-      ];
+    const getQuadrantPathAndVertices = (data: CVFQuadrant) => {
+      const vertices: Array<{ x: number; y: number; value: number; key: keyof CVFQuadrant }> = [];
+      let hasExtreme = false;
 
-      return positions
+      const path = quadrantPositions
         .map(({ key, angle }, i) => {
-          const value = data[key as keyof CVFQuadrant] ?? 0;
+          const value = data[key] ?? 0;
           const normalizedValue = Math.max(0, Math.min(100, value)) / 100;
-          const radius = normalizedValue * maxRadius;
+          // Ensure minimum radius for visibility at extreme low values
+          const radius = Math.max(normalizedValue * maxRadius, MIN_VISIBLE_RADIUS);
           const x = centerX + radius * Math.cos(angle);
           const y = centerY + radius * Math.sin(angle);
+
+          vertices.push({ x, y, value, key });
+
+          if (value <= EXTREME_VALUE_THRESHOLD) {
+            hasExtreme = true;
+          }
+
           return `${i === 0 ? "M" : "L"} ${x} ${y}`;
         })
         .join(" ") + " Z";
+
+      return { path, vertices, hasExtreme };
     };
 
+    const perceivedResult = getQuadrantPathAndVertices(perceived);
+    const valuesResult = values ? getQuadrantPathAndVertices(values) : null;
+
     // Generate accessible description of the chart data
-    const pDescription = Object.entries(perceived)
-      .map(([key, value]) => `${quadrantLabels[key as keyof typeof quadrantLabels]?.name || key}: ${Math.round(value)}%`)
+    const pDescription = requiredKeys
+      .map((key) => `${QUADRANT_LABELS[key]}: ${Math.round(perceived[key])}%`)
       .join(", ");
 
     const vDescription = values
-      ? Object.entries(values)
-          .map(([key, value]) => `${quadrantLabels[key as keyof typeof quadrantLabels]?.name || key}: ${Math.round(value)}%`)
+      ? requiredKeys
+          .map((key) => `${QUADRANT_LABELS[key]}: ${Math.round(values[key])}%`)
           .join(", ")
       : null;
 
     return {
-      perceivedPath: getQuadrantPath(perceived),
-      valuesPath: values ? getQuadrantPath(values) : null,
+      perceivedPath: perceivedResult.path,
+      valuesPath: valuesResult?.path ?? null,
+      perceivedVertices: perceivedResult.vertices,
+      valuesVertices: valuesResult?.vertices ?? null,
+      hasExtremeValues: perceivedResult.hasExtreme || (valuesResult?.hasExtreme ?? false),
       perceivedDescription: pDescription,
       valuesDescription: vDescription,
     };
-  }, [perceived, values, centerX, centerY, maxRadius]);
+  }, [perceived, values, centerX, centerY, maxRadius, quadrantPositions]);
+
+  // Determine if we should use abbreviated labels (for small sizes)
+  const useAbbreviatedLabels = resolvedSize <= 220;
 
   if (!hasValidData) {
     return (
-      <div className={cn("flex flex-col items-center gap-4", className)}>
-        <div
-          className="relative flex items-center justify-center bg-muted/20 rounded-lg"
-          style={{ width: size, height: size }}
-        >
-          <span className="text-sm text-muted-foreground">Dados inválidos ou incompletos</span>
-        </div>
+      <div
+        ref={containerRef}
+        className={cn("flex flex-col items-center gap-4", className)}
+        style={{ width: size === "responsive" ? "100%" : resolvedSize }}
+      >
+        <EmptyState message="Dados inválidos ou incompletos" />
       </div>
     );
   }
 
   return (
-    <div className={cn("flex flex-col items-center gap-4", className)}>
+    <div
+      ref={containerRef}
+      className={cn("flex flex-col items-center gap-4", className)}
+      style={{ width: size === "responsive" ? "100%" : resolvedSize }}
+    >
       <div className="relative">
         <svg
-          width={size}
-          height={size}
-          viewBox={`0 0 ${size} ${size}`}
+          width={resolvedSize}
+          height={resolvedSize}
+          viewBox={`0 0 ${resolvedSize} ${resolvedSize}`}
           className="overflow-visible"
           role="img"
           aria-labelledby="cvf-chart-title cvf-chart-desc"
@@ -123,7 +170,7 @@ export const CVFQuadrantChart = memo(function CVFQuadrantChart({
             width={centerX}
             height={centerY}
             fill={quadrantColors.clan}
-            fillOpacity={0.1}
+            fillOpacity={0.15}
           />
           <rect
             x={centerX}
@@ -131,7 +178,7 @@ export const CVFQuadrantChart = memo(function CVFQuadrantChart({
             width={centerX}
             height={centerY}
             fill={quadrantColors.adhocracy}
-            fillOpacity={0.1}
+            fillOpacity={0.15}
           />
           <rect
             x={centerX}
@@ -139,7 +186,7 @@ export const CVFQuadrantChart = memo(function CVFQuadrantChart({
             width={centerX}
             height={centerY}
             fill={quadrantColors.market}
-            fillOpacity={0.1}
+            fillOpacity={0.15}
           />
           <rect
             x={0}
@@ -147,27 +194,25 @@ export const CVFQuadrantChart = memo(function CVFQuadrantChart({
             width={centerX}
             height={centerY}
             fill={quadrantColors.hierarchy}
-            fillOpacity={0.1}
+            fillOpacity={0.15}
           />
 
           {/* Grid lines */}
           <line
             x1={0}
             y1={centerY}
-            x2={size}
+            x2={resolvedSize}
             y2={centerY}
-            stroke="currentColor"
+            stroke={CHART_COLORS.grid}
             strokeWidth={1}
-            className="text-border"
           />
           <line
             x1={centerX}
             y1={0}
             x2={centerX}
-            y2={size}
-            stroke="currentColor"
+            y2={resolvedSize}
+            stroke={CHART_COLORS.grid}
             strokeWidth={1}
-            className="text-border"
           />
 
           {/* Circular grid */}
@@ -178,20 +223,19 @@ export const CVFQuadrantChart = memo(function CVFQuadrantChart({
               cy={centerY}
               r={maxRadius * level}
               fill="none"
-              stroke="currentColor"
+              stroke={CHART_COLORS.grid}
               strokeWidth={1}
-              className="text-border"
               strokeDasharray="2 2"
             />
           ))}
 
-          {/* Values polygon (if provided) */}
+          {/* Values polygon (if provided) - drawn first so it's behind perceived */}
           {valuesPath && (
             <path
               d={valuesPath}
-              fill="var(--color-synmind-orange-400)"
+              fill={CHART_COLORS.secondaryLight}
               fillOpacity={0.15}
-              stroke="var(--color-synmind-orange-500)"
+              stroke={CHART_COLORS.secondary}
               strokeWidth={2}
               strokeDasharray="4 2"
               className="transition-all duration-500"
@@ -201,47 +245,81 @@ export const CVFQuadrantChart = memo(function CVFQuadrantChart({
           {/* Perceived polygon */}
           <path
             d={perceivedPath}
-            fill="var(--color-synmind-blue-400)"
+            fill={CHART_COLORS.primaryLight}
             fillOpacity={0.25}
-            stroke="var(--color-synmind-blue-500)"
+            stroke={CHART_COLORS.primary}
             strokeWidth={2}
             className="transition-all duration-500"
           />
 
-          {/* Labels */}
+          {/* Vertex markers for visibility at extreme values */}
+          {hasExtremeValues && perceivedVertices.map((vertex) => (
+            vertex.value <= EXTREME_VALUE_THRESHOLD && (
+              <circle
+                key={`perceived-vertex-${vertex.key}`}
+                cx={vertex.x}
+                cy={vertex.y}
+                r={4}
+                fill={CHART_COLORS.primary}
+                className="vertex-marker transition-all duration-500"
+              />
+            )
+          ))}
+          {hasExtremeValues && valuesVertices?.map((vertex) => (
+            vertex.value <= EXTREME_VALUE_THRESHOLD && (
+              <circle
+                key={`values-vertex-${vertex.key}`}
+                cx={vertex.x}
+                cy={vertex.y}
+                r={4}
+                fill={CHART_COLORS.secondary}
+                className="vertex-marker transition-all duration-500"
+              />
+            )
+          ))}
+
+          {/* Labels - responsive: abbreviated on small sizes */}
           {showLabels && (
             <>
               <text
                 x={centerX / 2}
-                y={20}
+                y={useAbbreviatedLabels ? 14 : 20}
                 textAnchor="middle"
-                className="text-xs fill-muted-foreground font-medium"
+                className={cn("font-medium", useAbbreviatedLabels ? "text-[10px]" : "text-xs")}
+                fill={CHART_COLORS.axis}
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
               >
-                {quadrantLabels.clan.name}
+                {useAbbreviatedLabels ? QUADRANT_LABELS_SHORT.clan : QUADRANT_LABELS.clan}
               </text>
               <text
                 x={centerX + centerX / 2}
-                y={20}
+                y={useAbbreviatedLabels ? 14 : 20}
                 textAnchor="middle"
-                className="text-xs fill-muted-foreground font-medium"
+                className={cn("font-medium", useAbbreviatedLabels ? "text-[10px]" : "text-xs")}
+                fill={CHART_COLORS.axis}
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
               >
-                {quadrantLabels.adhocracy.name}
+                {useAbbreviatedLabels ? QUADRANT_LABELS_SHORT.adhocracy : QUADRANT_LABELS.adhocracy}
               </text>
               <text
                 x={centerX + centerX / 2}
-                y={size - 8}
+                y={resolvedSize - (useAbbreviatedLabels ? 4 : 8)}
                 textAnchor="middle"
-                className="text-xs fill-muted-foreground font-medium"
+                className={cn("font-medium", useAbbreviatedLabels ? "text-[10px]" : "text-xs")}
+                fill={CHART_COLORS.axis}
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
               >
-                {quadrantLabels.market.name}
+                {useAbbreviatedLabels ? QUADRANT_LABELS_SHORT.market : QUADRANT_LABELS.market}
               </text>
               <text
                 x={centerX / 2}
-                y={size - 8}
+                y={resolvedSize - (useAbbreviatedLabels ? 4 : 8)}
                 textAnchor="middle"
-                className="text-xs fill-muted-foreground font-medium"
+                className={cn("font-medium", useAbbreviatedLabels ? "text-[10px]" : "text-xs")}
+                fill={CHART_COLORS.axis}
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
               >
-                {quadrantLabels.hierarchy.name}
+                {useAbbreviatedLabels ? QUADRANT_LABELS_SHORT.hierarchy : QUADRANT_LABELS.hierarchy}
               </text>
             </>
           )}
@@ -275,7 +353,9 @@ export const CVFQuadrantChart = memo(function CVFQuadrantChart({
               y={y}
               textAnchor="middle"
               dominantBaseline="middle"
-              className="text-sm fill-foreground font-bold"
+              className="text-sm font-bold"
+              fill="currentColor"
+              style={{ fontFamily: "'DM Sans', sans-serif" }}
             >
               {Math.round(perceived[key as keyof CVFQuadrant])}
             </text>
@@ -284,13 +364,19 @@ export const CVFQuadrantChart = memo(function CVFQuadrantChart({
       </div>
 
       {showLegend && values && (
-        <div className="flex items-center gap-6 text-sm">
+        <div className="flex items-center gap-6 text-sm" style={{ fontFamily: "'DM Sans', sans-serif" }}>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-synmind-blue-500" />
+            <div
+              className="w-4 h-0.5"
+              style={{ backgroundColor: CHART_COLORS.primary }}
+            />
             <span className="text-muted-foreground">Percebida</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-synmind-orange-500 border-dashed border-b" />
+            <div
+              className="w-4 h-0.5 border-dashed border-b-2"
+              style={{ borderColor: CHART_COLORS.secondary }}
+            />
             <span className="text-muted-foreground">Desejada</span>
           </div>
         </div>

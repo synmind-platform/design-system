@@ -28,3 +28,6 @@ npm-debug.log*
 
 # Claude Code
 .claude/
+
+# Coverage reports
+coverage/
