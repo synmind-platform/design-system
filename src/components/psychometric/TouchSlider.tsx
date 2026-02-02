@@ -50,7 +50,7 @@ export function TouchSlider({
   const thumbSize = Math.max(rawThumbSize ?? 56, MIN_THUMB_SIZE);
 
   // Warn in development if thumbSize was below minimum
-  if (process.env.NODE_ENV === 'development' && rawThumbSize && rawThumbSize < MIN_THUMB_SIZE) {
+  if (import.meta.env?.DEV && rawThumbSize && rawThumbSize < MIN_THUMB_SIZE) {
     console.warn(`TouchSlider: thumbSize (${rawThumbSize}px) is below the minimum accessible size (${MIN_THUMB_SIZE}px). Using ${MIN_THUMB_SIZE}px instead.`);
   }
   const trackRef = useRef<HTMLDivElement>(null);

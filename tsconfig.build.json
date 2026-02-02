@@ -21,6 +21,8 @@
     "src/test",
     "**/*.test.ts",
     "**/*.test.tsx",
+    "**/*.stories.ts",
+    "**/*.stories.tsx",
     "src/main.tsx",
     "src/lib/data-model-loader.ts",
     "src/lib/design-system-loader.ts",
