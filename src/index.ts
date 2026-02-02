@@ -162,6 +162,8 @@ export { TouchSlider } from "./components/psychometric/TouchSlider";
 export type { TouchSliderProps } from "./components/psychometric/TouchSlider";
 export { ForcedChoice } from "./components/psychometric/ForcedChoice";
 export { AllocationSlider } from "./components/psychometric/AllocationSlider";
+export { EmptyState } from "./components/psychometric/EmptyState";
+export type { EmptyStateProps } from "./components/psychometric/EmptyState";
 
 // ============================================================================
 // Brand Components
@@ -178,7 +180,15 @@ export { AppLayout } from "./components/AppLayout";
 // ============================================================================
 // Hooks
 // ============================================================================
-export { useCollapsible, usePagination, useToast, toast } from "./hooks";
+export {
+  useCollapsible,
+  usePagination,
+  useToast,
+  toast,
+  useIsTouchDevice,
+  useContainerSize,
+  useChartSize,
+} from "./hooks";
 export type {
   UseCollapsibleOptions,
   UseCollapsibleReturn,
@@ -190,6 +200,12 @@ export type {
 // Utilities
 // ============================================================================
 export { cn } from "./lib/utils";
+
+// Chart constants
+export { CHART_COLORS, CLASSIFICATION_COLORS, QUADRANT_LABELS } from "./lib/chart-colors";
+export type { QuadrantKey } from "./lib/chart-colors";
+export { CHART_SIZE_VALUES, CHART_MIN_SIZE, resolveChartSize } from "./lib/chart-sizes";
+export type { ChartSizePreset } from "./lib/chart-sizes";
 
 // ============================================================================
 // Types (from psychometric)
@@ -221,3 +237,4 @@ export type {
 } from "./types/psychometric";
 
 export { INSTRUMENTS, DIMENSION_LABELS } from "./types/psychometric";
+export type { ChartSize } from "./types/psychometric";

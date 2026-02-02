@@ -1,11 +1,15 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { DIMENSION_LABELS } from "@/types/psychometric";
+import type { ChartSize } from "@/types/psychometric";
+import { useChartSize } from "@/hooks/useChartSize";
+import { CHART_COLORS } from "@/lib/chart-colors";
+import { EmptyState } from "./EmptyState";
 
 interface RadarChartProps {
   scores: Record<string, number>; // 0-100 scale
   dimensions: string[];
-  size?: number;
+  size?: ChartSize;
   showLabels?: boolean;
   showValues?: boolean;
   variant?: "filled" | "line";
@@ -15,27 +19,38 @@ interface RadarChartProps {
 export const RadarChart = memo(function RadarChart({
   scores,
   dimensions,
-  size = 280,
+  size = "md",
   showLabels = true,
   showValues = false,
   variant = "filled",
   className,
 }: RadarChartProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const resolvedSize = useChartSize(size, containerRef);
+
   // Guard against empty or invalid dimensions array
   if (!dimensions || dimensions.length === 0) {
     return (
-      <div className={cn("relative flex items-center justify-center", className)} style={{ width: size, height: size }}>
-        <span className="text-sm text-muted-foreground">Sem dados para exibir</span>
+      <div
+        ref={containerRef}
+        className={cn("relative", className)}
+        style={{ width: size === "responsive" ? "100%" : resolvedSize, height: resolvedSize }}
+      >
+        <EmptyState message="Sem dados para exibir" />
       </div>
     );
   }
 
-  const centerX = size / 2;
-  const centerY = size / 2;
-  const maxRadius = (size / 2) * 0.7;
+  // Limit to max 10 dimensions with truncation warning
+  const displayDimensions = dimensions.slice(0, 10);
+  const isTruncated = dimensions.length > 10;
+
+  const centerX = resolvedSize / 2;
+  const centerY = resolvedSize / 2;
+  const maxRadius = (resolvedSize / 2) * 0.7;
 
   // Safe division - dimensions.length is guaranteed > 0 by guard above
-  const angleStep = (2 * Math.PI) / dimensions.length;
+  const angleStep = (2 * Math.PI) / displayDimensions.length;
   const startAngle = -Math.PI / 2; // Start from top
 
   // Memoize SVG calculations
@@ -56,7 +71,7 @@ export const RadarChart = memo(function RadarChart({
       };
     };
 
-    const calculatedPoints = dimensions.map((dim, i) => ({
+    const calculatedPoints = displayDimensions.map((dim, i) => ({
       dimension: dim,
       ...getPoint(dim, i),
     }));
@@ -67,7 +82,7 @@ export const RadarChart = memo(function RadarChart({
       .join(" ") + " Z";
 
     // Generate accessible description of the chart data
-    const description = dimensions
+    const description = displayDimensions
       .map((dim) => {
         const label = DIMENSION_LABELS[dim] || dim;
         const value = Math.round(scores[dim] ?? 0);
@@ -76,24 +91,29 @@ export const RadarChart = memo(function RadarChart({
       .join(", ");
 
     return { points: calculatedPoints, polygonPath: path, chartDescription: description };
-  }, [scores, dimensions, size, centerX, centerY, maxRadius, angleStep, startAngle]);
+  }, [scores, displayDimensions, centerX, centerY, maxRadius, angleStep, startAngle]);
 
   // Grid circles (25%, 50%, 75%, 100%)
   const gridLevels = [0.25, 0.5, 0.75, 1];
 
   return (
-    <div className={cn("relative", className)}>
+    <div
+      ref={containerRef}
+      className={cn("relative", className)}
+      style={{ width: size === "responsive" ? "100%" : resolvedSize }}
+    >
       <svg
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
+        width={resolvedSize}
+        height={resolvedSize}
+        viewBox={`0 0 ${resolvedSize} ${resolvedSize}`}
         className="overflow-visible"
         role="img"
         aria-labelledby="radar-chart-title radar-chart-desc"
       >
         <title id="radar-chart-title">Gráfico Radar de Dimensões</title>
         <desc id="radar-chart-desc">
-          Gráfico radar mostrando {dimensions.length} dimensões. {chartDescription}
+          Gráfico radar mostrando {displayDimensions.length} dimensões. {chartDescription}
+          {isTruncated ? ` (Mostrando 10 de ${dimensions.length} dimensões)` : ""}
         </desc>
         {/* Grid circles */}
         {gridLevels.map((level) => (
@@ -103,9 +123,8 @@ export const RadarChart = memo(function RadarChart({
             cy={centerY}
             r={maxRadius * level}
             fill="none"
-            stroke="currentColor"
+            stroke={CHART_COLORS.grid}
             strokeWidth={1}
-            className="text-border"
             strokeDasharray={level < 1 ? "2 2" : "none"}
           />
         ))}
@@ -118,22 +137,17 @@ export const RadarChart = memo(function RadarChart({
             y1={centerY}
             x2={centerX + maxRadius * Math.cos(point.angle)}
             y2={centerY + maxRadius * Math.sin(point.angle)}
-            stroke="currentColor"
+            stroke={CHART_COLORS.grid}
             strokeWidth={1}
-            className="text-border"
           />
         ))}
 
         {/* Data polygon */}
         <path
           d={polygonPath}
-          fill={
-            variant === "filled"
-              ? "var(--color-synmind-blue-500)"
-              : "transparent"
-          }
+          fill={variant === "filled" ? CHART_COLORS.primary : "transparent"}
           fillOpacity={variant === "filled" ? 0.2 : 0}
-          stroke="var(--color-synmind-blue-500)"
+          stroke={CHART_COLORS.primary}
           strokeWidth={2}
           className="transition-all duration-500"
         />
@@ -145,7 +159,7 @@ export const RadarChart = memo(function RadarChart({
             cx={point.x}
             cy={point.y}
             r={5}
-            fill="var(--color-synmind-blue-500)"
+            fill={CHART_COLORS.primary}
             stroke="white"
             strokeWidth={2}
             className="transition-all duration-300"
@@ -178,11 +192,13 @@ export const RadarChart = memo(function RadarChart({
                       ? "hanging"
                       : "middle"
                 }
-                className="text-xs fill-muted-foreground font-medium"
+                className="text-xs font-medium"
+                fill={CHART_COLORS.axis}
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
               >
                 {label}
                 {showValues && (
-                  <tspan className="fill-foreground font-semibold">
+                  <tspan className="font-semibold" fill="currentColor">
                     {" "}
                     {Math.round(point.value)}
                   </tspan>

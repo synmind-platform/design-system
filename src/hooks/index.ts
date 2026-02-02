@@ -11,3 +11,8 @@ export { usePagination } from "./usePagination";
 export type { UsePaginationOptions, UsePaginationReturn } from "./usePagination";
 
 export { useToast, toast } from "./use-toast";
+
+// Psychometric hooks
+export { useIsTouchDevice } from "./useIsTouchDevice";
+export { useContainerSize } from "./useContainerSize";
+export { useChartSize } from "./useChartSize";

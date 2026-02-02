@@ -191,4 +191,58 @@ describe('TouchSlider', () => {
       expect(track).toHaveClass('opacity-50', 'cursor-not-allowed')
     })
   })
+
+  describe('Accessibility', () => {
+    it('enforces minimum thumb size of 44px', () => {
+      const { container } = render(<TouchSlider thumbSize={30} />)
+      // The thumb should still be at least 44px (enforced by MIN_THUMB_SIZE)
+      const thumb = container.querySelector('[aria-hidden="true"]')
+      expect(thumb).toHaveStyle({ width: '44px', height: '44px' })
+    })
+
+    it('accepts custom thumb size when >= 44px', () => {
+      const { container } = render(<TouchSlider thumbSize={60} />)
+      const thumb = container.querySelector('[aria-hidden="true"]')
+      expect(thumb).toHaveStyle({ width: '60px', height: '60px' })
+    })
+
+    it('step buttons have aria-label', () => {
+      render(<TouchSlider />)
+      const buttons = screen.getAllByRole('button')
+      buttons.forEach((button, index) => {
+        expect(button).toHaveAttribute('aria-label', `Selecionar valor ${index + 1}`)
+      })
+    })
+
+    it('step buttons have aria-pressed for selected state', () => {
+      render(<TouchSlider value={3} />)
+      const buttons = screen.getAllByRole('button')
+      buttons.forEach((button, index) => {
+        const isSelected = index + 1 === 3
+        expect(button).toHaveAttribute('aria-pressed', String(isSelected))
+      })
+    })
+
+    it('step buttons have minimum touch target size', () => {
+      const { container } = render(<TouchSlider />)
+      const buttons = container.querySelectorAll('button')
+      buttons.forEach((button) => {
+        expect(button).toHaveClass('min-w-[44px]', 'min-h-[44px]')
+      })
+    })
+  })
+
+  describe('showDragValue prop', () => {
+    it('shows value in thumb when showDragValue is true (default)', () => {
+      const { container } = render(<TouchSlider value={3} />)
+      const thumb = container.querySelector('[aria-hidden="true"]')
+      expect(thumb?.textContent).toBe('3')
+    })
+
+    it('hides value in thumb when showDragValue is false', () => {
+      const { container } = render(<TouchSlider value={3} showDragValue={false} />)
+      const thumb = container.querySelector('[aria-hidden="true"]')
+      expect(thumb?.textContent).toBe('')
+    })
+  })
 })

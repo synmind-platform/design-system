@@ -259,4 +259,57 @@ describe('LikertScale', () => {
       expect(screen.getByText('Neutro')).toBeInTheDocument()
     })
   })
+
+  describe('Auto variant', () => {
+    it('renders without crashing', () => {
+      render(<LikertScale {...defaultProps} variant="auto" />)
+      expect(screen.getByText('How satisfied are you with our service?')).toBeInTheDocument()
+    })
+
+    it('falls back to buttons on desktop (mocked non-touch)', () => {
+      // By default, matchMedia mock returns false for touch queries
+      render(<LikertScale {...defaultProps} variant="auto" />)
+      // Should render buttons variant (5 buttons)
+      const buttons = screen.getAllByRole('button')
+      expect(buttons).toHaveLength(5)
+    })
+  })
+
+  describe('Readonly mode', () => {
+    it('displays value but does not allow interaction', async () => {
+      const user = userEvent.setup()
+      const onChange = vi.fn()
+      render(<LikertScale {...defaultProps} value={3} readonly onChange={onChange} />)
+
+      const buttons = screen.getAllByRole('button')
+      await user.click(buttons[0]) // Try to click another button
+
+      expect(onChange).not.toHaveBeenCalled()
+    })
+
+    it('disables all buttons when readonly is true', () => {
+      render(<LikertScale {...defaultProps} readonly />)
+
+      const buttons = screen.getAllByRole('button')
+      buttons.forEach((button) => {
+        expect(button).toBeDisabled()
+      })
+    })
+
+    it('still shows selected value', () => {
+      render(<LikertScale {...defaultProps} value={4} readonly />)
+
+      const selectedButton = screen.getByRole('button', { name: '4' })
+      expect(selectedButton).toHaveClass('border-synmind-blue-500', 'bg-synmind-blue-500')
+    })
+
+    it('applies opacity styling', () => {
+      const { container } = render(<LikertScale {...defaultProps} readonly />)
+
+      const buttons = container.querySelectorAll('button')
+      buttons.forEach((button) => {
+        expect(button).toHaveClass('opacity-50')
+      })
+    })
+  })
 })

@@ -1,5 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useMemo } from "react";
+import { CHART_COLORS } from "@/lib/chart-colors";
+import { CheckCircle2, AlertCircle } from "lucide-react";
 
 interface AllocationOption {
   id: string;
@@ -16,17 +18,31 @@ interface AllocationSliderProps {
   total?: number; // Default 100
   onChange?: (questionId: string, values: Record<string, number>) => void;
   disabled?: boolean;
+  readonly?: boolean;
   showPercentages?: boolean;
   variant?: "sliders" | "pie";
+  pieSize?: number; // Min 200px, default 240px
   className?: string;
 }
 
-const defaultColors = [
-  "var(--color-synmind-blue-400)",
-  "var(--color-synmind-orange-400)",
-  "var(--color-synmind-blue-600)",
-  "var(--color-synmind-orange-600)",
+// Cores distintas para cada quadrante CVF, usando CHART_COLORS
+const QUADRANT_COLORS = [
+  CHART_COLORS.quadrants.clan,     // Colaborativa - blue-100
+  CHART_COLORS.quadrants.adhocracy, // Inovadora - orange-100
+  CHART_COLORS.quadrants.market,    // Competitiva - orange-200
+  CHART_COLORS.quadrants.hierarchy, // Estruturada - blue-200
 ];
+
+// Cores mais saturadas para bordas e indicadores
+const QUADRANT_COLORS_ACCENT = [
+  CHART_COLORS.primary,        // blue-500
+  CHART_COLORS.secondary,      // orange-500
+  CHART_COLORS.secondaryDark,  // orange-600
+  CHART_COLORS.primaryDark,    // blue-600
+];
+
+const MIN_PIE_SIZE = 200;
+const DEFAULT_PIE_SIZE = 240;
 
 export function AllocationSlider({
   questionId,
@@ -36,10 +52,22 @@ export function AllocationSlider({
   total = 100,
   onChange,
   disabled = false,
+  readonly = false,
   showPercentages = true,
   variant = "sliders",
+  pieSize: rawPieSize,
   className,
 }: AllocationSliderProps) {
+  // Enforce minimum pieSize of 200px
+  const pieSize = Math.max(rawPieSize ?? DEFAULT_PIE_SIZE, MIN_PIE_SIZE);
+  if (rawPieSize !== undefined && rawPieSize < MIN_PIE_SIZE) {
+    console.warn(
+      `AllocationSlider: pieSize must be >= ${MIN_PIE_SIZE}px for accessibility. Using ${MIN_PIE_SIZE}px.`
+    );
+  }
+
+  // Readonly behaves like disabled but may have different visual treatment
+  const isInteractive = !disabled && !readonly;
   // Initialize with equal distribution
   const getInitialValues = () => {
     const equal = Math.floor(total / options.length);
@@ -67,7 +95,7 @@ export function AllocationSlider({
   const isValid = currentTotal === total;
 
   const handleChange = (optionId: string, newValue: number) => {
-    if (disabled) return;
+    if (!isInteractive) return;
 
     const clampedValue = Math.max(0, Math.min(total, newValue));
     const oldValue = values[optionId] || 0;
@@ -112,8 +140,15 @@ export function AllocationSlider({
     onChange?.(questionId, newValues);
   };
 
-  // Memoize pie chart slice paths
+  // Calculate total difference for display
+  const totalDifference = currentTotal - total;
+
+  // Memoize pie chart slice paths with proper scaling
   const pieSlices = useMemo(() => {
+    const center = pieSize / 2;
+    const radius = (pieSize / 2) * 0.85; // 85% of half-size for radius
+    const innerRadius = radius * 0.45; // Inner hole for donut
+
     let currentAngle = -90;
     return options.map((opt, i) => {
       const value = values[opt.id] || 0;
@@ -125,32 +160,48 @@ export function AllocationSlider({
 
       const startRad = (startAngle * Math.PI) / 180;
       const endRad = (endAngle * Math.PI) / 180;
-      const x1 = 80 + 70 * Math.cos(startRad);
-      const y1 = 80 + 70 * Math.sin(startRad);
-      const x2 = 80 + 70 * Math.cos(endRad);
-      const y2 = 80 + 70 * Math.sin(endRad);
+
+      // Outer arc points
+      const x1 = center + radius * Math.cos(startRad);
+      const y1 = center + radius * Math.sin(startRad);
+      const x2 = center + radius * Math.cos(endRad);
+      const y2 = center + radius * Math.sin(endRad);
+
       const largeArc = angle > 180 ? 1 : 0;
+
+      // Use quadrant-specific colors for CVF, or custom color if provided
+      const color = opt.color || QUADRANT_COLORS_ACCENT[i % QUADRANT_COLORS_ACCENT.length];
 
       return {
         id: opt.id,
-        path: `M 80 80 L ${x1} ${y1} A 70 70 0 ${largeArc} 1 ${x2} ${y2} Z`,
-        color: opt.color || defaultColors[i % defaultColors.length],
+        path: `M ${center} ${center} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`,
+        color,
         percentage,
+        label: opt.label,
       };
     });
-  }, [options, values, total]);
+  }, [options, values, total, pieSize]);
 
   if (variant === "pie") {
+    const center = pieSize / 2;
+    const innerRadius = (pieSize / 2) * 0.85 * 0.45;
+
     return (
       <div className={cn("space-y-4", className)}>
         {question && (
           <p className="text-base font-medium leading-relaxed">{question}</p>
         )}
 
-        <div className="flex gap-8 items-center justify-center">
+        <div className="flex gap-8 items-center justify-center flex-wrap">
           {/* Pie chart */}
-          <div className="relative">
-            <svg width={160} height={160} viewBox="0 0 160 160">
+          <div className="relative flex-shrink-0">
+            <svg
+              width={pieSize}
+              height={pieSize}
+              viewBox={`0 0 ${pieSize} ${pieSize}`}
+              role="img"
+              aria-label={`Gráfico de alocação: ${options.map(o => `${o.label} ${values[o.id] || 0}%`).join(', ')}`}
+            >
               {pieSlices.map((slice) =>
                 slice.percentage === 0 ? null : (
                   <path
@@ -158,33 +209,56 @@ export function AllocationSlider({
                     d={slice.path}
                     fill={slice.color}
                     className="transition-all duration-300"
+                    stroke="var(--background)"
+                    strokeWidth={2}
                   />
                 )
               )}
-              <circle cx={80} cy={80} r={35} fill="var(--background)" />
+              {/* Inner circle (donut hole) */}
+              <circle
+                cx={center}
+                cy={center}
+                r={innerRadius}
+                fill="var(--background)"
+              />
+              {/* Total display in center */}
               <text
-                x={80}
-                y={80}
+                x={center}
+                y={center - 8}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                className="text-lg font-bold fill-foreground"
+                className={cn(
+                  "text-2xl font-bold",
+                  isValid ? "fill-emerald-600" : "fill-destructive"
+                )}
               >
                 {currentTotal}%
               </text>
+              {!isValid && (
+                <text
+                  x={center}
+                  y={center + 14}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className="text-xs fill-muted-foreground"
+                >
+                  {totalDifference > 0 ? `+${totalDifference}` : totalDifference}
+                </text>
+              )}
             </svg>
           </div>
 
           {/* Legend with sliders */}
-          <div className="space-y-3 flex-1 max-w-xs">
+          <div className="space-y-3 flex-1 min-w-[200px] max-w-xs">
             {options.map((opt, i) => (
               <div key={opt.id} className="space-y-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div
-                      className="w-3 h-3 rounded-full"
+                      className="w-3 h-3 rounded-full flex-shrink-0"
                       style={{
                         backgroundColor:
-                          opt.color || defaultColors[i % defaultColors.length],
+                          opt.color || QUADRANT_COLORS_ACCENT[i % QUADRANT_COLORS_ACCENT.length],
                       }}
                     />
                     <span className="text-sm font-medium">{opt.label}</span>
@@ -200,18 +274,28 @@ export function AllocationSlider({
                   step={5}
                   value={values[opt.id] || 0}
                   onChange={(e) => handleChange(opt.id, parseInt(e.target.value))}
-                  disabled={disabled}
-                  className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-synmind-blue-500"
+                  disabled={!isInteractive}
+                  aria-label={`${opt.label}: ${values[opt.id] || 0}%`}
+                  className={cn(
+                    "w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer",
+                    !isInteractive && "opacity-50 cursor-not-allowed"
+                  )}
+                  style={{
+                    accentColor:
+                      opt.color || QUADRANT_COLORS_ACCENT[i % QUADRANT_COLORS_ACCENT.length],
+                  }}
                 />
               </div>
             ))}
           </div>
         </div>
 
+        {/* Total validation message below */}
         {!isValid && (
-          <p className="text-sm text-destructive text-center">
-            Total deve ser {total}% (atual: {currentTotal}%)
-          </p>
+          <div className="flex items-center justify-center gap-2 text-sm text-destructive">
+            <AlertCircle className="h-4 w-4" />
+            <span>Total deve ser {total}% (atual: {currentTotal}%)</span>
+          </div>
         )}
       </div>
     );
@@ -230,10 +314,10 @@ export function AllocationSlider({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div
-                  className="w-3 h-3 rounded-full"
+                  className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{
                     backgroundColor:
-                      opt.color || defaultColors[i % defaultColors.length],
+                      opt.color || QUADRANT_COLORS_ACCENT[i % QUADRANT_COLORS_ACCENT.length],
                   }}
                 />
                 <span className="text-sm font-medium">{opt.label}</span>
@@ -256,38 +340,46 @@ export function AllocationSlider({
               step={5}
               value={values[opt.id] || 0}
               onChange={(e) => handleChange(opt.id, parseInt(e.target.value))}
-              disabled={disabled}
+              disabled={!isInteractive}
+              aria-label={`${opt.label}: ${values[opt.id] || 0}%`}
               className={cn(
                 "w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer",
-                disabled && "opacity-50 cursor-not-allowed"
+                !isInteractive && "opacity-50 cursor-not-allowed"
               )}
               style={{
                 accentColor:
-                  opt.color || defaultColors[i % defaultColors.length],
+                  opt.color || QUADRANT_COLORS_ACCENT[i % QUADRANT_COLORS_ACCENT.length],
               }}
             />
           </div>
         ))}
       </div>
 
-      {/* Total indicator */}
+      {/* Total indicator with enhanced feedback */}
       <div
         className={cn(
-          "flex items-center justify-between p-3 rounded-lg",
-          isValid ? "bg-muted/50" : "bg-destructive/10"
+          "flex items-center justify-between p-3 rounded-lg transition-colors",
+          isValid ? "bg-emerald-50 dark:bg-emerald-950/20" : "bg-destructive/10"
         )}
       >
-        <span className="text-sm font-medium">Total</span>
+        <div className="flex items-center gap-2">
+          {isValid ? (
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+          ) : (
+            <AlertCircle className="h-4 w-4 text-destructive" />
+          )}
+          <span className="text-sm font-medium">Total</span>
+        </div>
         <span
           className={cn(
             "text-sm tabular-nums font-bold",
             isValid ? "text-emerald-600" : "text-destructive"
           )}
         >
-          {currentTotal}%{" "}
+          {currentTotal}%
           {!isValid && (
-            <span className="font-normal text-muted-foreground">
-              (deve ser {total}%)
+            <span className="ml-2 font-normal text-muted-foreground">
+              ({totalDifference > 0 ? "+" : ""}{totalDifference})
             </span>
           )}
         </span>

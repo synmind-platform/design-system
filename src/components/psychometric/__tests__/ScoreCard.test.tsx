@@ -1,12 +1,12 @@
-import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
-import { ScoreCard } from '../ScoreCard'
+import { render, screen } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { ScoreCard } from '../ScoreCard';
 
 describe('ScoreCard', () => {
   const defaultProps = {
     dimension: 'extraversion',
-    score: 75,
-  }
+    score: 75 as number | null,
+  };
 
   describe('Detailed variant (default)', () => {
     it('renders the dimension label', () => {
@@ -209,8 +209,105 @@ describe('ScoreCard', () => {
   })
 
   it('merges custom className in compact mode', () => {
-    render(<ScoreCard {...defaultProps} variant="compact" className="custom-class" />)
-    const container = screen.getByText('Sociabilidade').closest('.custom-class')
-    expect(container).toBeInTheDocument()
-  })
-})
+    render(
+      <ScoreCard {...defaultProps} variant="compact" className="custom-class" />
+    );
+    const container = screen.getByText('Sociabilidade').closest('.custom-class');
+    expect(container).toBeInTheDocument();
+  });
+
+  describe('Empty state (null score)', () => {
+    it('renders empty state when score is null', () => {
+      render(<ScoreCard {...defaultProps} score={null} />);
+      expect(screen.getByRole('status')).toBeInTheDocument();
+    });
+
+    it('shows dimension label in empty state', () => {
+      render(<ScoreCard {...defaultProps} score={null} />);
+      expect(screen.getByText('Sociabilidade')).toBeInTheDocument();
+    });
+
+    it('shows "Score indisponível" message in empty state', () => {
+      render(<ScoreCard {...defaultProps} score={null} />);
+      expect(screen.getByText('Score indisponível')).toBeInTheDocument();
+    });
+
+    it('renders empty state in compact variant', () => {
+      render(<ScoreCard {...defaultProps} score={null} variant="compact" />);
+      expect(screen.getByText('Sociabilidade')).toBeInTheDocument();
+      expect(screen.getByText('-')).toBeInTheDocument();
+    });
+
+    it('does not show classification in empty state', () => {
+      render(
+        <ScoreCard {...defaultProps} score={null} classification="HIGH" />
+      );
+      expect(screen.queryByText('Alto')).not.toBeInTheDocument();
+    });
+
+    it('does not show trend in empty state', () => {
+      render(<ScoreCard {...defaultProps} score={null} previousScore={65} />);
+      expect(screen.queryByText(/\+/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/-\d/)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Visual hierarchy', () => {
+    it('renders dimension as h4 heading', () => {
+      render(<ScoreCard {...defaultProps} />);
+      const heading = screen.getByRole('heading', { level: 4 });
+      expect(heading).toHaveTextContent('Sociabilidade');
+    });
+
+    it('renders score with prominent styling', () => {
+      render(<ScoreCard {...defaultProps} />);
+      const score = screen.getByText('75');
+      expect(score).toHaveClass('text-3xl', 'font-bold');
+    });
+
+    it('renders classification with medium emphasis', () => {
+      render(<ScoreCard {...defaultProps} classification="HIGH" />);
+      const classification = screen.getByText('Alto');
+      expect(classification).toHaveClass('text-sm', 'font-medium');
+    });
+
+    it('renders trend with low emphasis', () => {
+      render(<ScoreCard {...defaultProps} previousScore={65} />);
+      const trend = screen.getByText('+10').parentElement;
+      expect(trend).toHaveClass('text-xs');
+    });
+
+    it('maintains hierarchy with all elements present', () => {
+      render(
+        <ScoreCard
+          {...defaultProps}
+          classification="HIGH"
+          previousScore={65}
+          description="Test description"
+        />
+      );
+
+      // All elements should be present
+      expect(screen.getByRole('heading', { level: 4 })).toBeInTheDocument();
+      expect(screen.getByText('75')).toBeInTheDocument();
+      expect(screen.getByText('Alto')).toBeInTheDocument();
+      expect(screen.getByText('+10')).toBeInTheDocument();
+      expect(screen.getByText('Test description')).toBeInTheDocument();
+    });
+  });
+
+  describe('Height consistency in grid', () => {
+    it('has consistent card structure', () => {
+      render(<ScoreCard {...defaultProps} />);
+      const card = document.querySelector('[data-slot="card"]');
+      expect(card).toHaveClass('overflow-hidden');
+    });
+
+    it('empty state card maintains card structure', () => {
+      render(<ScoreCard {...defaultProps} score={null} />);
+      const card = document.querySelector('[data-slot="card"]');
+      expect(card).toBeInTheDocument();
+      expect(card).toHaveClass('overflow-hidden');
+    });
+  });
+});

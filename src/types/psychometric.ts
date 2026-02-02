@@ -3,6 +3,12 @@
  * Tipos para os 5 instrumentos psicométricos da plataforma
  */
 
+import type { CHART_SIZE_VALUES } from '../lib/chart-sizes';
+
+// Chart size types
+export type ChartSizePreset = keyof typeof CHART_SIZE_VALUES;
+export type ChartSize = ChartSizePreset | 'responsive' | number;
+
 // Quality control flags
 export type QualitySeverity = "info" | "warning" | "critical" | "invalid";
 

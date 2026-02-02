@@ -1,11 +1,13 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
-import type { SYM4Dimension } from "@/types/psychometric";
+import type { SYM4Dimension, ChartSize } from "@/types/psychometric";
+import { useChartSize } from "@/hooks/useChartSize";
+import { CHART_COLORS } from "@/lib/chart-colors";
 
 interface ProfileChartProps {
   graphI: SYM4Dimension; // Perfil natural
   graphII?: SYM4Dimension; // Perfil adaptado
-  size?: number;
+  size?: ChartSize;
   variant?: "bar" | "diamond";
   showLabels?: boolean;
   showLegend?: boolean;
@@ -16,22 +18,22 @@ const dimensionConfig = {
   assertive: {
     label: "Assertivo",
     short: "D",
-    color: "var(--color-synmind-orange-600)",
+    color: CHART_COLORS.secondaryDark, // Orange for D/I
   },
   influential: {
     label: "Influenciador",
     short: "I",
-    color: "var(--color-synmind-orange-400)",
+    color: CHART_COLORS.secondary,
   },
   stable: {
     label: "Estável",
     short: "S",
-    color: "var(--color-synmind-blue-400)",
+    color: CHART_COLORS.primaryLight, // Blue for S/C
   },
   analytical: {
     label: "Analítico",
     short: "C",
-    color: "var(--color-synmind-blue-600)",
+    color: CHART_COLORS.primaryDark,
   },
 };
 
@@ -45,21 +47,26 @@ const dimensions: (keyof SYM4Dimension)[] = [
 export const ProfileChart = memo(function ProfileChart({
   graphI,
   graphII,
-  size = 300,
+  size = "md",
   variant = "bar",
   showLabels = true,
   showLegend = true,
   className,
 }: ProfileChartProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const resolvedSize = useChartSize(size, containerRef);
+
   if (variant === "diamond") {
     return (
       <DiamondChart
         graphI={graphI}
         graphII={graphII}
-        size={size}
+        size={resolvedSize}
         showLabels={showLabels}
         showLegend={showLegend}
         className={className}
+        containerRef={containerRef}
+        isResponsive={size === "responsive"}
       />
     );
   }
@@ -68,7 +75,7 @@ export const ProfileChart = memo(function ProfileChart({
   const gap = 12;
   const labelWidth = showLabels ? 100 : 0;
   const valueWidth = 40;
-  const barWidth = size - labelWidth - valueWidth - 24;
+  const barWidth = resolvedSize - labelWidth - valueWidth - 24;
   const totalHeight = dimensions.length * (barHeight + gap) - gap;
 
   // Memoize accessible description
@@ -80,11 +87,15 @@ export const ProfileChart = memo(function ProfileChart({
   );
 
   return (
-    <div className={cn("flex flex-col gap-4", className)}>
+    <div
+      ref={containerRef}
+      className={cn("flex flex-col gap-4", className)}
+      style={{ width: size === "responsive" ? "100%" : resolvedSize }}
+    >
       <svg
-        width={size}
+        width={resolvedSize}
         height={totalHeight}
-        viewBox={`0 0 ${size} ${totalHeight}`}
+        viewBox={`0 0 ${resolvedSize} ${totalHeight}`}
         className="overflow-visible"
         role="img"
         aria-labelledby="profile-bar-chart-title profile-bar-chart-desc"
@@ -113,7 +124,9 @@ export const ProfileChart = memo(function ProfileChart({
                   x={0}
                   y={y + barHeight / 2}
                   dominantBaseline="middle"
-                  className="text-sm fill-foreground font-medium"
+                  className="text-sm font-medium"
+                  fill="currentColor"
+                  style={{ fontFamily: "'DM Sans', sans-serif" }}
                 >
                   {config.label}
                 </text>
@@ -126,8 +139,8 @@ export const ProfileChart = memo(function ProfileChart({
                 width={barWidth}
                 height={barHeight - 8}
                 rx={4}
-                fill="currentColor"
-                className="text-muted"
+                fill={CHART_COLORS.grid}
+                fillOpacity={0.3}
               />
 
               {/* Graph I bar */}
@@ -148,8 +161,8 @@ export const ProfileChart = memo(function ProfileChart({
                   y1={y}
                   x2={labelWidth + barWidth * normalizedII}
                   y2={y + barHeight}
-                  stroke="var(--foreground)"
-                  strokeWidth={2}
+                  stroke={CHART_COLORS.secondary}
+                  strokeWidth={3}
                   strokeDasharray="4 2"
                   className="transition-all duration-500"
                 />
@@ -160,7 +173,9 @@ export const ProfileChart = memo(function ProfileChart({
                 x={labelWidth + barWidth + 12}
                 y={y + barHeight / 2}
                 dominantBaseline="middle"
-                className="text-sm fill-foreground font-bold tabular-nums"
+                className="text-sm font-bold tabular-nums"
+                fill="currentColor"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
               >
                 {Math.round(valueI)}
               </text>
@@ -170,13 +185,19 @@ export const ProfileChart = memo(function ProfileChart({
       </svg>
 
       {showLegend && graphII && (
-        <div className="flex items-center gap-6 text-sm">
+        <div className="flex items-center gap-6 text-sm" style={{ fontFamily: "'DM Sans', sans-serif" }}>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-3 rounded-sm bg-synmind-blue-500" />
+            <div
+              className="w-4 h-3 rounded-sm"
+              style={{ backgroundColor: CHART_COLORS.primary }}
+            />
             <span className="text-muted-foreground">Natural (I)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 border-t-2 border-dashed border-foreground" />
+            <div
+              className="w-4 h-0.5 border-t-2 border-dashed"
+              style={{ borderColor: CHART_COLORS.secondary }}
+            />
             <span className="text-muted-foreground">Adaptado (II)</span>
           </div>
         </div>
@@ -185,6 +206,12 @@ export const ProfileChart = memo(function ProfileChart({
   );
 });
 
+interface DiamondChartProps extends Omit<ProfileChartProps, "variant" | "size"> {
+  size: number;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  isResponsive: boolean;
+}
+
 const DiamondChart = memo(function DiamondChart({
   graphI,
   graphII,
@@ -192,10 +219,12 @@ const DiamondChart = memo(function DiamondChart({
   showLabels,
   showLegend,
   className,
-}: Omit<ProfileChartProps, "variant">) {
-  const centerX = size! / 2;
-  const centerY = size! / 2;
-  const maxRadius = (size! / 2) * 0.7;
+  containerRef,
+  isResponsive,
+}: DiamondChartProps) {
+  const centerX = size / 2;
+  const centerY = size / 2;
+  const maxRadius = (size / 2) * 0.7;
 
   // Memoize path calculations
   const { graphIPath, graphIIPath, points, chartDescription } = useMemo(() => {
@@ -242,7 +271,11 @@ const DiamondChart = memo(function DiamondChart({
   }, [graphI, graphII, centerX, centerY, maxRadius]);
 
   return (
-    <div className={cn("flex flex-col items-center gap-4", className)}>
+    <div
+      ref={containerRef}
+      className={cn("flex flex-col items-center gap-4", className)}
+      style={{ width: isResponsive ? "100%" : size }}
+    >
       <svg
         width={size}
         height={size}
@@ -268,9 +301,8 @@ const DiamondChart = memo(function DiamondChart({
               })
               .join(" ")}
             fill="none"
-            stroke="currentColor"
+            stroke={CHART_COLORS.grid}
             strokeWidth={1}
-            className="text-border"
             strokeDasharray={level < 1 ? "2 2" : "none"}
           />
         ))}
@@ -285,20 +317,19 @@ const DiamondChart = memo(function DiamondChart({
               y1={centerY}
               x2={centerX + maxRadius * Math.cos(angle)}
               y2={centerY + maxRadius * Math.sin(angle)}
-              stroke="currentColor"
+              stroke={CHART_COLORS.grid}
               strokeWidth={1}
-              className="text-border"
             />
           );
         })}
 
-        {/* Graph II (if provided) */}
+        {/* Graph II (if provided) - drawn first so it's behind Graph I */}
         {graphIIPath && (
           <path
             d={graphIIPath}
-            fill="var(--color-synmind-orange-400)"
+            fill={CHART_COLORS.secondaryLight}
             fillOpacity={0.15}
-            stroke="var(--color-synmind-orange-500)"
+            stroke={CHART_COLORS.secondary}
             strokeWidth={2}
             strokeDasharray="4 2"
             className="transition-all duration-500"
@@ -308,9 +339,9 @@ const DiamondChart = memo(function DiamondChart({
         {/* Graph I */}
         <path
           d={graphIPath}
-          fill="var(--color-synmind-blue-400)"
+          fill={CHART_COLORS.primaryLight}
           fillOpacity={0.25}
-          stroke="var(--color-synmind-blue-500)"
+          stroke={CHART_COLORS.primary}
           strokeWidth={2}
           className="transition-all duration-500"
         />
@@ -322,7 +353,7 @@ const DiamondChart = memo(function DiamondChart({
               cx={point.x}
               cy={point.y}
               r={5}
-              fill="var(--color-synmind-blue-500)"
+              fill={CHART_COLORS.primary}
               stroke="white"
               strokeWidth={2}
             />
@@ -332,9 +363,11 @@ const DiamondChart = memo(function DiamondChart({
                 y={point.labelY}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                className="text-xs fill-muted-foreground font-medium"
+                className="text-xs font-medium"
+                fill={CHART_COLORS.axis}
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
               >
-                <tspan className="font-bold fill-foreground">
+                <tspan className="font-bold" fill="currentColor">
                   {point.config.short}
                 </tspan>{" "}
                 {Math.round(point.value)}
@@ -345,13 +378,19 @@ const DiamondChart = memo(function DiamondChart({
       </svg>
 
       {showLegend && graphII && (
-        <div className="flex items-center gap-6 text-sm">
+        <div className="flex items-center gap-6 text-sm" style={{ fontFamily: "'DM Sans', sans-serif" }}>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-synmind-blue-500" />
+            <div
+              className="w-4 h-0.5"
+              style={{ backgroundColor: CHART_COLORS.primary }}
+            />
             <span className="text-muted-foreground">Natural (I)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-synmind-orange-500 border-dashed" />
+            <div
+              className="w-4 h-0.5 border-dashed border-b-2"
+              style={{ borderColor: CHART_COLORS.secondary }}
+            />
             <span className="text-muted-foreground">Adaptado (II)</span>
           </div>
         </div>

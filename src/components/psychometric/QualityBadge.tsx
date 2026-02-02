@@ -28,25 +28,25 @@ const severityConfig: Record<
   info: {
     icon: Info,
     color: "text-synmind-blue-500",
-    bg: "bg-synmind-blue-50",
+    bg: "bg-synmind-blue-50 dark:bg-synmind-blue-900/20",
     label: "Info",
   },
   warning: {
     icon: AlertTriangle,
-    color: "text-amber-600",
-    bg: "bg-amber-50",
+    color: "text-synmind-orange-500 dark:text-synmind-orange-400",
+    bg: "bg-synmind-orange-50 dark:bg-synmind-orange-900/20",
     label: "Atenção",
   },
   critical: {
     icon: ShieldAlert,
-    color: "text-orange-600",
-    bg: "bg-orange-50",
+    color: "text-synmind-orange-600 dark:text-synmind-orange-400",
+    bg: "bg-synmind-orange-100 dark:bg-synmind-orange-900/30",
     label: "Crítico",
   },
   invalid: {
     icon: XCircle,
     color: "text-destructive",
-    bg: "bg-red-50",
+    bg: "bg-destructive/10",
     label: "Inválido",
   },
 };

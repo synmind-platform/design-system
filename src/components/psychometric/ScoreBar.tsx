@@ -3,12 +3,19 @@ import { cn } from "@/lib/utils";
 import type { ClassificationLabel } from "@/types/psychometric";
 
 interface ScoreBarProps {
-  value: number; // 0-100
+  /** Valor do score (0-100) ou null para estado vazio */
+  value: number | null;
+  /** Label da dimensão */
   label?: string;
+  /** Classificação semântica para cor */
   classification?: ClassificationLabel;
+  /** Exibir valor numérico */
   showValue?: boolean;
+  /** Tamanho da barra */
   size?: "sm" | "md" | "lg";
+  /** Estilo visual da barra */
   variant?: "default" | "gradient" | "segmented";
+  /** Classes adicionais */
   className?: string;
 }
 
@@ -34,7 +41,8 @@ export const ScoreBar = memo(function ScoreBar({
   variant = "default",
   className,
 }: ScoreBarProps) {
-  const clampedValue = Math.max(0, Math.min(100, value));
+  const isEmptyState = value === null || value === undefined;
+  const clampedValue = isEmptyState ? 0 : Math.max(0, Math.min(100, value));
 
   const getBarColor = () => {
     if (classification) {
@@ -47,6 +55,12 @@ export const ScoreBar = memo(function ScoreBar({
     return "bg-synmind-orange-500";
   };
 
+  const ariaLabel = label
+    ? `${label}: ${isEmptyState ? "dados indisponíveis" : `${Math.round(clampedValue)}%`}`
+    : isEmptyState
+      ? "Score indisponível"
+      : `Score: ${Math.round(clampedValue)}%`;
+
   return (
     <div className={cn("w-full", className)}>
       {(label || showValue) && (
@@ -56,18 +70,26 @@ export const ScoreBar = memo(function ScoreBar({
           )}
           {showValue && (
             <span className="text-sm tabular-nums text-muted-foreground">
-              {Math.round(clampedValue)}
+              {isEmptyState ? "-" : Math.round(clampedValue)}
             </span>
           )}
         </div>
       )}
       <div
+        role="progressbar"
+        aria-valuenow={isEmptyState ? undefined : Math.round(clampedValue)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={ariaLabel}
         className={cn(
           "w-full rounded-full bg-muted overflow-hidden",
           sizeClasses[size]
         )}
       >
-        {variant === "segmented" ? (
+        {isEmptyState ? (
+          // Empty state: show subtle striped pattern to indicate no data
+          <div className="h-full w-full bg-muted" />
+        ) : variant === "segmented" ? (
           <div className="flex h-full gap-0.5">
             {[0, 25, 50, 75].map((threshold) => (
               <div

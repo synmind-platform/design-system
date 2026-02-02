@@ -1,6 +1,7 @@
 import { memo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { TouchSlider } from "./TouchSlider";
+import { useIsTouchDevice } from "@/hooks/useIsTouchDevice";
 
 interface LikertScaleProps {
   questionId: string;
@@ -14,7 +15,10 @@ interface LikertScaleProps {
   value?: number;
   onChange?: (questionId: string, value: number) => void;
   disabled?: boolean;
-  variant?: "buttons" | "slider" | "radio" | "touch";
+  /** Read-only mode - displays value without allowing interaction */
+  readonly?: boolean;
+  /** Visual variant: "auto" detects touch device and uses appropriate variant */
+  variant?: "buttons" | "slider" | "radio" | "touch" | "auto";
   className?: string;
 }
 
@@ -43,26 +47,38 @@ export const LikertScale = memo(function LikertScale({
   value,
   onChange,
   disabled = false,
+  readonly = false,
   variant = "buttons",
   className,
 }: LikertScaleProps) {
   const [hoveredValue, setHoveredValue] = useState<number | null>(null);
+  const isTouchDevice = useIsTouchDevice();
   const scaleLabels = labels || defaultLabels[scale] || defaultLabels[5];
   const options = Array.from({ length: scale }, (_, i) => i + 1);
   const midpoint = Math.ceil(scale / 2);
 
+  // Resolve "auto" variant based on device type
+  const resolvedVariant = variant === "auto"
+    ? (isTouchDevice ? "touch" : "buttons")
+    : variant;
+
+  // Combine disabled and readonly for interaction blocking
+  const isInteractive = !disabled && !readonly;
+
   const handleSelect = (selectedValue: number) => {
-    if (!disabled && onChange) {
+    if (isInteractive && onChange) {
       onChange(questionId, selectedValue);
     }
   };
 
-  if (variant === "slider") {
+  if (resolvedVariant === "slider") {
+    const sliderId = `${questionId}-slider`;
     return (
       <div className={cn("space-y-4", className)}>
-        <p className="text-base font-medium leading-relaxed">{question}</p>
+        <label htmlFor={sliderId} className="text-base font-medium leading-relaxed block">{question}</label>
         <div className="space-y-2">
           <input
+            id={sliderId}
             type="range"
             min={1}
             max={scale}
@@ -70,6 +86,7 @@ export const LikertScale = memo(function LikertScale({
             value={value || midpoint}
             onChange={(e) => handleSelect(parseInt(e.target.value))}
             disabled={disabled}
+            aria-label={question}
             className={cn(
               "w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer",
               "accent-synmind-blue-500",
@@ -86,23 +103,23 @@ export const LikertScale = memo(function LikertScale({
     );
   }
 
-  if (variant === "touch") {
+  if (resolvedVariant === "touch") {
     return (
       <div className={cn("space-y-4", className)}>
         <p className="text-base font-medium leading-relaxed">{question}</p>
         <TouchSlider
           value={value}
-          onChange={(v) => onChange?.(questionId, v)}
+          onChange={(v) => isInteractive && onChange?.(questionId, v)}
           min={1}
           max={scale}
           labels={scaleLabels}
-          disabled={disabled}
+          disabled={disabled || readonly}
         />
       </div>
     );
   }
 
-  if (variant === "radio") {
+  if (resolvedVariant === "radio") {
     return (
       <div className={cn("space-y-4", className)}>
         <p className="text-base font-medium leading-relaxed">{question}</p>
@@ -115,7 +132,7 @@ export const LikertScale = memo(function LikertScale({
                 value === option
                   ? "border-synmind-blue-500 bg-synmind-blue-50 dark:bg-synmind-blue-900/20"
                   : "border-border hover:bg-muted/50",
-                disabled && "opacity-50 cursor-not-allowed"
+                (disabled || readonly) && "opacity-50 cursor-not-allowed"
               )}
             >
               <input
@@ -124,7 +141,7 @@ export const LikertScale = memo(function LikertScale({
                 value={option}
                 checked={value === option}
                 onChange={() => handleSelect(option)}
-                disabled={disabled}
+                disabled={disabled || readonly}
                 className="sr-only"
               />
               <div
@@ -172,7 +189,7 @@ export const LikertScale = memo(function LikertScale({
                 onClick={() => handleSelect(option)}
                 onMouseEnter={() => setHoveredValue(option)}
                 onMouseLeave={() => setHoveredValue(null)}
-                disabled={disabled}
+                disabled={disabled || readonly}
                 className={cn(
                   "w-12 h-12 rounded-lg border-2 font-semibold transition-all",
                   "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
@@ -181,7 +198,7 @@ export const LikertScale = memo(function LikertScale({
                     : isHovered
                       ? "border-synmind-blue-400 bg-synmind-blue-50 dark:bg-synmind-blue-900/30"
                       : "border-border bg-background hover:border-synmind-blue-300",
-                  disabled && "opacity-50 cursor-not-allowed"
+                  (disabled || readonly) && "opacity-50 cursor-not-allowed"
                 )}
               >
                 {option}
