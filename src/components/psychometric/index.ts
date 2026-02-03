@@ -23,6 +23,7 @@ export { TouchSlider } from "./TouchSlider";
 export type { TouchSliderProps } from "./TouchSlider";
 export { ForcedChoice } from "./ForcedChoice";
 export { AllocationSlider } from "./AllocationSlider";
+export type { AllocationSliderProps, AllocationOption } from "./AllocationSlider";
 export { EmptyState } from "./EmptyState";
 export type { EmptyStateProps } from "./EmptyState";
 

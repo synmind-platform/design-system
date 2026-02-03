@@ -162,6 +162,10 @@ export { TouchSlider } from "./components/psychometric/TouchSlider";
 export type { TouchSliderProps } from "./components/psychometric/TouchSlider";
 export { ForcedChoice } from "./components/psychometric/ForcedChoice";
 export { AllocationSlider } from "./components/psychometric/AllocationSlider";
+export type {
+  AllocationSliderProps,
+  AllocationOption,
+} from "./components/psychometric/AllocationSlider";
 export { EmptyState } from "./components/psychometric/EmptyState";
 export type { EmptyStateProps } from "./components/psychometric/EmptyState";
 

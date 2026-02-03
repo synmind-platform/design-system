@@ -48,10 +48,11 @@ describe('AllocationSlider', () => {
       expect(screen.getByText('Estruturada')).toBeInTheDocument();
     });
 
-    it('renders descriptions when provided', () => {
+    it('renders descriptions as tooltips when provided', () => {
       render(<AllocationSlider {...defaultProps} />);
-      expect(screen.getByText('Foco em pessoas')).toBeInTheDocument();
-      expect(screen.getByText('Foco em inovação')).toBeInTheDocument();
+      // Descriptions are shown as title attributes (tooltips) on info icons
+      expect(screen.getByTitle('Foco em pessoas')).toBeInTheDocument();
+      expect(screen.getByTitle('Foco em inovação')).toBeInTheDocument();
     });
 
     it('renders percentages for each option', () => {
@@ -111,7 +112,9 @@ describe('AllocationSlider', () => {
       const { container } = render(
         <AllocationSlider {...defaultProps} variant="pie" />
       );
-      const paths = container.querySelectorAll('path');
+      // Only count paths inside the pie chart SVG (which has role="img")
+      const pieSvg = container.querySelector('svg[role="img"]');
+      const paths = pieSvg?.querySelectorAll('path') ?? [];
       expect(paths.length).toBe(4);
     });
 
@@ -166,6 +169,70 @@ describe('AllocationSlider', () => {
     it('does not warn when pieSize is valid', () => {
       render(<AllocationSlider {...defaultProps} variant="pie" pieSize={250} />);
       expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('step prop', () => {
+    it('uses default step of 5', () => {
+      const { container } = render(<AllocationSlider {...defaultProps} />);
+      const slider = container.querySelector('input[type="range"]');
+      expect(slider).toHaveAttribute('step', '5');
+    });
+
+    it('accepts custom step value', () => {
+      const { container } = render(
+        <AllocationSlider {...defaultProps} step={10} />
+      );
+      const slider = container.querySelector('input[type="range"]');
+      expect(slider).toHaveAttribute('step', '10');
+    });
+
+    it('applies step to all sliders', () => {
+      const { container } = render(
+        <AllocationSlider {...defaultProps} step={1} />
+      );
+      const sliders = container.querySelectorAll('input[type="range"]');
+      sliders.forEach((slider) => {
+        expect(slider).toHaveAttribute('step', '1');
+      });
+    });
+
+    it('applies step in pie variant', () => {
+      const { container } = render(
+        <AllocationSlider {...defaultProps} variant="pie" step={2} />
+      );
+      const slider = container.querySelector('input[type="range"]');
+      expect(slider).toHaveAttribute('step', '2');
+    });
+  });
+
+  describe('Initial values validation', () => {
+    it('logs warning when initial values sum does not equal total', () => {
+      const invalidValues = { clan: 20, adhocracy: 20, market: 20, hierarchy: 20 };
+      render(<AllocationSlider {...defaultProps} values={invalidValues} />);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Initial values sum (80) does not equal total (100)')
+      );
+    });
+
+    it('does not warn when initial values sum equals total', () => {
+      render(<AllocationSlider {...defaultProps} />);
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    });
+
+    it('validates against custom total', () => {
+      const values = { a: 30, b: 30 };
+      render(
+        <AllocationSlider
+          questionId="custom"
+          options={[{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }]}
+          values={values}
+          total={50}
+        />
+      );
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Initial values sum (60) does not equal total (50)')
+      );
     });
   });
 
@@ -396,7 +463,9 @@ describe('AllocationSlider', () => {
       const { container } = render(
         <AllocationSlider {...defaultProps} values={values} variant="pie" />
       );
-      const paths = container.querySelectorAll('path');
+      // Only count paths inside the pie chart SVG (which has role="img")
+      const pieSvg = container.querySelector('svg[role="img"]');
+      const paths = pieSvg?.querySelectorAll('path') ?? [];
       expect(paths.length).toBe(1);
     });
 

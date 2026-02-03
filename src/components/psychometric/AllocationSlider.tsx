@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useMemo } from "react";
 import { CHART_COLORS } from "@/lib/chart-colors";
-import { CheckCircle2, AlertCircle } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info } from "lucide-react";
 
 interface AllocationOption {
   id: string;
@@ -10,12 +10,13 @@ interface AllocationOption {
   color?: string;
 }
 
-interface AllocationSliderProps {
+export interface AllocationSliderProps {
   questionId: string;
   question?: string;
   options: AllocationOption[];
   values?: Record<string, number>;
   total?: number; // Default 100
+  step?: number; // Step increment for sliders, default 5
   onChange?: (questionId: string, values: Record<string, number>) => void;
   disabled?: boolean;
   readonly?: boolean;
@@ -24,6 +25,8 @@ interface AllocationSliderProps {
   pieSize?: number; // Min 200px, default 240px
   className?: string;
 }
+
+export type { AllocationOption };
 
 // Cores distintas para cada quadrante CVF, usando CHART_COLORS
 const QUADRANT_COLORS = [
@@ -44,12 +47,15 @@ const QUADRANT_COLORS_ACCENT = [
 const MIN_PIE_SIZE = 200;
 const DEFAULT_PIE_SIZE = 240;
 
+const DEFAULT_STEP = 5;
+
 export function AllocationSlider({
   questionId,
   question,
   options,
   values: externalValues,
   total = 100,
+  step = DEFAULT_STEP,
   onChange,
   disabled = false,
   readonly = false,
@@ -88,8 +94,16 @@ export function AllocationSlider({
   useEffect(() => {
     if (externalValues) {
       setValues(externalValues);
+      // Validate initial values sum
+      const externalTotal = Object.values(externalValues).reduce((sum, v) => sum + v, 0);
+      if (externalTotal !== total) {
+        console.warn(
+          `AllocationSlider: Initial values sum (${externalTotal}) does not equal total (${total}). ` +
+          `Redistribution will not maintain the expected total until values are adjusted.`
+        );
+      }
     }
-  }, [externalValues]);
+  }, [externalValues, total]);
 
   const currentTotal = Object.values(values).reduce((sum, v) => sum + v, 0);
   const isValid = currentTotal === total;
@@ -99,41 +113,37 @@ export function AllocationSlider({
 
     const clampedValue = Math.max(0, Math.min(total, newValue));
     const oldValue = values[optionId] || 0;
-    const diff = clampedValue - oldValue;
+    let diff = clampedValue - oldValue;
 
-    // Distribute the difference among other options proportionally
-    const otherOptions = options.filter((o) => o.id !== optionId);
-    const otherTotal = otherOptions.reduce(
-      (sum, o) => sum + (values[o.id] || 0),
-      0
-    );
+    if (diff === 0) return;
 
     const newValues = { ...values, [optionId]: clampedValue };
 
-    if (otherTotal > 0 && diff !== 0) {
-      let remaining = -diff;
-      otherOptions.forEach((opt) => {
-        const currentVal = values[opt.id] || 0;
-        const proportion = currentVal / otherTotal;
-        let adjustment = Math.round(remaining * proportion);
+    // Find the index of the changed option
+    const changedIndex = options.findIndex((o) => o.id === optionId);
 
-        // Ensure we don't go below 0
-        if (currentVal + adjustment < 0) {
-          adjustment = -currentVal;
-        }
+    // Redistribute the difference to subsequent options in order
+    // When slider N changes, the difference goes to N+1, then N+2, etc. (wrapping around)
+    let remaining = -diff;
+    for (let i = 1; i < options.length && remaining !== 0; i++) {
+      const targetIndex = (changedIndex + i) % options.length;
+      const targetOpt = options[targetIndex];
+      const currentVal = newValues[targetOpt.id] || 0;
 
-        newValues[opt.id] = currentVal + adjustment;
-        remaining -= adjustment;
-      });
+      // Calculate how much we can adjust this slider
+      let adjustment = remaining;
 
-      // Handle any rounding errors
-      if (remaining !== 0 && otherOptions.length > 0) {
-        const lastOpt = otherOptions[otherOptions.length - 1];
-        newValues[lastOpt.id] = Math.max(
-          0,
-          (newValues[lastOpt.id] || 0) + remaining
-        );
+      // Can't go below 0
+      if (currentVal + adjustment < 0) {
+        adjustment = -currentVal;
       }
+      // Can't go above total
+      if (currentVal + adjustment > total) {
+        adjustment = total - currentVal;
+      }
+
+      newValues[targetOpt.id] = currentVal + adjustment;
+      remaining -= adjustment;
     }
 
     setValues(newValues);
@@ -147,7 +157,6 @@ export function AllocationSlider({
   const pieSlices = useMemo(() => {
     const center = pieSize / 2;
     const radius = (pieSize / 2) * 0.85; // 85% of half-size for radius
-    const innerRadius = radius * 0.45; // Inner hole for donut
 
     let currentAngle = -90;
     return options.map((opt, i) => {
@@ -157,6 +166,21 @@ export function AllocationSlider({
       const startAngle = currentAngle;
       const endAngle = currentAngle + angle;
       currentAngle = endAngle;
+
+      // Use quadrant-specific colors for CVF, or custom color if provided
+      const color = opt.color || QUADRANT_COLORS_ACCENT[i % QUADRANT_COLORS_ACCENT.length];
+
+      // Special case: 100% should draw a full circle, not an arc
+      // (arc with same start/end point is invisible)
+      if (percentage >= 0.9999) {
+        return {
+          id: opt.id,
+          path: `M ${center} ${center - radius} A ${radius} ${radius} 0 1 1 ${center} ${center + radius} A ${radius} ${radius} 0 1 1 ${center} ${center - radius} Z`,
+          color,
+          percentage,
+          label: opt.label,
+        };
+      }
 
       const startRad = (startAngle * Math.PI) / 180;
       const endRad = (endAngle * Math.PI) / 180;
@@ -168,9 +192,6 @@ export function AllocationSlider({
       const y2 = center + radius * Math.sin(endRad);
 
       const largeArc = angle > 180 ? 1 : 0;
-
-      // Use quadrant-specific colors for CVF, or custom color if provided
-      const color = opt.color || QUADRANT_COLORS_ACCENT[i % QUADRANT_COLORS_ACCENT.length];
 
       return {
         id: opt.id,
@@ -262,6 +283,14 @@ export function AllocationSlider({
                       }}
                     />
                     <span className="text-sm font-medium">{opt.label}</span>
+                    {opt.description && (
+                      <span
+                        title={opt.description}
+                        className="cursor-help text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Info className="h-3.5 w-3.5" />
+                      </span>
+                    )}
                   </div>
                   <span className="text-sm tabular-nums font-semibold">
                     {values[opt.id] || 0}%
@@ -271,7 +300,7 @@ export function AllocationSlider({
                   type="range"
                   min={0}
                   max={total}
-                  step={5}
+                  step={step}
                   value={values[opt.id] || 0}
                   onChange={(e) => handleChange(opt.id, parseInt(e.target.value))}
                   disabled={!isInteractive}
@@ -321,6 +350,14 @@ export function AllocationSlider({
                   }}
                 />
                 <span className="text-sm font-medium">{opt.label}</span>
+                {opt.description && (
+                  <span
+                    title={opt.description}
+                    className="cursor-help text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Info className="h-3.5 w-3.5" />
+                  </span>
+                )}
               </div>
               {showPercentages && (
                 <span className="text-sm tabular-nums font-semibold">
@@ -328,16 +365,11 @@ export function AllocationSlider({
                 </span>
               )}
             </div>
-            {opt.description && (
-              <p className="text-xs text-muted-foreground pl-5">
-                {opt.description}
-              </p>
-            )}
             <input
               type="range"
               min={0}
               max={total}
-              step={5}
+              step={step}
               value={values[opt.id] || 0}
               onChange={(e) => handleChange(opt.id, parseInt(e.target.value))}
               disabled={!isInteractive}
